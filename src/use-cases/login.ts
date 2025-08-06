@@ -1,51 +1,51 @@
-import type { UsersRepository } from "../repositories/users";
-import type { LoginDataLoginData, Token } from "../types/users.js";
+import type { UsersRepository } from '../repositories/users'
+import type { LoginDataLoginData, Token } from '../types/users.js'
 import { compare } from 'bcrypt'
-import jwt from 'jsonwebtoken';
-import { env } from "../config/env";
-import { AppError, BadRequestError, InternalServerError } from "../err/appError";
+import jwt from 'jsonwebtoken'
+import { env } from '../config/env'
+import { AppError, BadRequestError, InternalServerError } from '../err/appError'
 
 export class LoginUseCase {
-  constructor(
-  private readonly usersRepository : UsersRepository) {}
+  constructor(private readonly usersRepository: UsersRepository) {}
 
   async execute(data: LoginDataLoginData): Promise<Token | null> {
     data.document = data.document.replace(/\D/g, '')
-    
-    try{
-    const userFound = await this.usersRepository.findByDocument(data.document);
 
-    if (!userFound) {
-      throw new BadRequestError('Non existent people.');
-    }
+    try {
+      const userFound = await this.usersRepository.findByDocument(data.document)
 
-    const checkPassword = await compare(data.password, userFound.passwordHash);
+      if (!userFound) {
+        throw new BadRequestError('Non existent people.')
+      }
 
-    if (!checkPassword) {
-      throw new BadRequestError('Password does not match.');
-    }
+      const checkPassword = await compare(data.password, userFound.passwordHash)
 
-    const token = this.generateToken(userFound.id);
+      if (!checkPassword) {
+        throw new BadRequestError('Password does not match.')
+      }
 
-    const tokenBearer = {
-      token: `Bearer ${token}`
-    }
-    
-    return tokenBearer
-  }catch (error){
+      const token = this.generateToken(userFound.id)
+
+      const tokenBearer = {
+        token: `Bearer ${token}`,
+      }
+
+      return tokenBearer
+    } catch (error) {
       if (error instanceof AppError) throw error
-    
-    throw new InternalServerError('Error in the process of login.')
-  }}
 
-  private generateToken(
-    userId: string) {
+      throw new InternalServerError('Error in the process of login.')
+    }
+  }
 
+  private generateToken(userId: string) {
     const payload = {
       id: userId,
-    };
+    }
 
-    const token =jwt.sign(payload, env.JWT_SECRET, { expiresIn: env.JWT_SECRET_EXPIRES_IN_SECONDS });
-    return token;
+    const token = jwt.sign(payload, env.JWT_SECRET, {
+      expiresIn: env.JWT_SECRET_EXPIRES_IN_SECONDS,
+    })
+    return token
   }
 }

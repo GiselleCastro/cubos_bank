@@ -1,35 +1,35 @@
-import type { Request, Response, NextFunction } from 'express';
-import { HttpStatusCode } from 'axios';
-import jwt, { JwtPayload } from 'jsonwebtoken';
-import { env } from '../config/env';
-import { TokenDecode } from '../types/users';
+import type { Request, Response, NextFunction } from 'express'
+import { HttpStatusCode } from 'axios'
+import jwt, { JwtPayload } from 'jsonwebtoken'
+import { env } from '../config/env'
+import { TokenDecode } from '../types/users'
 
 interface AuthenticatedRequest extends Request {
-  user?: string | JwtPayload;
+  user?: string | JwtPayload
 }
 
 export class AuthMiddleware {
-  static handle(){
-    return (req: AuthenticatedRequest, res: Response, next: NextFunction)=> {
-    const authHeader = req.headers.authorization;
+  static handle() {
+    return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+      const authHeader = req.headers.authorization
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(HttpStatusCode.Unauthorized).json({ error: 'No token.' });
-    }
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(HttpStatusCode.Unauthorized).json({ error: 'No token.' })
+      }
 
-    const token = authHeader.split(' ')[1];
+      const token = authHeader.split(' ')[1]
 
-    if(!token){
-      return res.status(HttpStatusCode.Unauthorized).json({ error: 'No token.' });
-    }
+      if (!token) {
+        return res.status(HttpStatusCode.Unauthorized).json({ error: 'No token.' })
+      }
 
-    try {
-      const decoded = jwt.verify(token, env.JWT_SECRET) as TokenDecode;
-      req.headers.authorization = decoded.id
-      next();
-    } catch {
-      return res.status(HttpStatusCode.Unauthorized).json({ error: 'Token invalid.' });
+      try {
+        const decoded = jwt.verify(token, env.JWT_SECRET) as TokenDecode
+        req.headers.authorization = decoded.id
+        next()
+      } catch {
+        return res.status(HttpStatusCode.Unauthorized).json({ error: 'Token invalid.' })
+      }
     }
   }
-}
 }

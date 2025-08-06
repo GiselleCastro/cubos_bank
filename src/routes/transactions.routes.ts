@@ -1,13 +1,17 @@
-import { Router } from 'express';
-import { TransactionsControllerFactory } from '../controllers/factories/transactions.controller.factory';
-import { AuthMiddleware } from '../middlewares/authentication';
-import { ValidateSchemaMiddleware } from '../middlewares/schemaValidation';
-export const router = Router();
+import { Router } from 'express'
+import { TransactionsControllerFactory } from '../controllers/factories/transactions.controller.factory'
+import { AuthMiddleware } from '../middlewares/authentication'
+import { ValidateSchemaMiddleware } from '../middlewares/schemaValidation'
+export const router = Router()
 
-const controller = TransactionsControllerFactory.make();
+const controller = TransactionsControllerFactory.make()
 
 router.use(AuthMiddleware.handle())
-router.post('/', ValidateSchemaMiddleware.handle(), controller.registerUser());
-router.get('/', controller.registerUser());
-router.post('/internal', ValidateSchemaMiddleware.handle(), controller.registerUser());
-router.post('/:transactionId/revert', ValidateSchemaMiddleware.handle(), controller.registerUser());
+router.post('/', ValidateSchemaMiddleware.handle(), controller.registerUser())
+router.get('/', controller.registerUser())
+router.post('/internal', ValidateSchemaMiddleware.handle(), controller.registerUser())
+router.post(
+  '/:transactionId/revert',
+  ValidateSchemaMiddleware.handle(),
+  controller.registerUser(),
+)

@@ -1,12 +1,12 @@
-import { z } from "zod";
-import { createAccountBodySchema } from "../schema/account";
+import { z } from 'zod'
+import { createAccountBodySchema } from '../schema/account'
 
-export type CreateAccountData = z.infer<typeof createAccountBodySchema>;
+export type CreateAccountData = z.infer<typeof createAccountBodySchema>
 
 export type CreateAccountReturn = CreateAccountData & {
-  id: string;
-createdAt: Date;
-updatedAt: Date;
+  id: string
+  createdAt: Date
+  updatedAt: Date
 }
 
 export type AccountType = CreateAccountReturn

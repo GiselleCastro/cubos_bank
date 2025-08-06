@@ -1,29 +1,28 @@
-import { z } from "zod";
-import { createCardBodySchema } from "../schema/account";
+import { z } from 'zod'
+import { createCardBodySchema } from '../schema/account'
 
-import { listOfCardsBodySchema } from "../schema/card";
+import { listOfCardsBodySchema } from '../schema/card'
 
-export type CreateCardData = z.infer<typeof createCardBodySchema>;
+export type CreateCardData = z.infer<typeof createCardBodySchema>
 
 export type CreateCard = CreateCardData & {
-  id: string;
-  accountId: string;
-
+  id: string
+  accountId: string
 }
 
 export type CreateCardReturn = CreateCardData & {
-  id: string;
-createdAt: Date;
-updatedAt: Date;
+  id: string
+  createdAt: Date
+  updatedAt: Date
 }
 
-type Pagination = z.infer<typeof listOfCardsBodySchema>;
+type Pagination = z.infer<typeof listOfCardsBodySchema>
 
 export type PaginationByUser = Pagination & {
-  userId: string;
+  userId: string
 }
 
 export type CreateCardReturnPagination = {
-  cards: CreateCardReturn[];
-  pagination: Pagination;
+  cards: CreateCardReturn[]
+  pagination: Pagination
 }

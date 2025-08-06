@@ -1,19 +1,19 @@
-import { RestClient } from "./common/restClient";
-import type { AxiosInstance } from "axios";
-import { HttpStatusCode, AxiosError } from "axios";
-import { InternalServerError } from "../err/appError";
+import { RestClient } from './common/restClient'
+import type { AxiosInstance } from 'axios'
+import { HttpStatusCode, AxiosError } from 'axios'
+import { InternalServerError } from '../err/appError'
 
 export type ValidationDocumentType = {
-  document: string;
-  status: number;
-  reason: string;
+  document: string
+  status: number
+  reason: string
 }
 export class CompilanceAPI extends RestClient {
-  private authCode: string | null = null;
-  private accessToken: string | null =  null;
-  private refreshToken: string | null = null;
-  private isRefreshing = false;
-  private failedQueue: any[] = [];
+  private authCode: string | null = null
+  private accessToken: string | null = null
+  private refreshToken: string | null = null
+  //private isRefreshing = false;
+  //  private failedQueue: any[] = [];
 
   constructor(instance: AxiosInstance) {
     super(instance)
@@ -21,10 +21,10 @@ export class CompilanceAPI extends RestClient {
     //   response => response,
     //   async (error) => {
     //     const originalRequest = error.config;
-  
+
     //     if (error.response?.status === 401 && !originalRequest._retry) {
     //       originalRequest._retry = true; // marca que já tentou refresh
-  
+
     //       try {
     //         await this.refreshAccessToken(); // método que renova o token
     //         originalRequest.headers['Authorization'] = `Bearer ${this.accessToken}`;
@@ -34,10 +34,10 @@ export class CompilanceAPI extends RestClient {
     //         return Promise.reject(refreshError);
     //       }
     //     }
-  
+
     //     return Promise.reject(error);
     //   })
-}
+  }
 
   //   this.instance.interceptors.response.use(
   //     response => response,
@@ -80,125 +80,128 @@ export class CompilanceAPI extends RestClient {
   // }
 
   private async obtainAuthCode() {
-    try{
-
+    try {
       const response = await this.post(`/auth/code`, {
-        "email": process.env.API_COMPILANCE_CUBOS_CLIENT,
-        "password": process.env.API_COMPILANCE_CUBOS_SECRET
-      });
+        email: process.env.API_COMPILANCE_CUBOS_CLIENT,
+        password: process.env.API_COMPILANCE_CUBOS_SECRET,
+      })
       this.authCode = response.data.data.authCode
-    } catch (error){
-
-      throw new InternalServerError('Unable to obtain auth code.')
-
-
+    } catch (error) {
+      console.error(error)
+      throw new InternalServerError(`Unable to obtain auth code.`)
     }
   }
 
   private async createAccessToken() {
-    try{
-
+    try {
       const response = await this.post(`/auth/token`, {
-        authCode: this.authCode
-      });
-      this.accessToken = response.data.data.accessToken;
-      this.refreshToken = response.data.data.refreshToken;
-    } catch(error){
+        authCode: this.authCode,
+      })
+      this.accessToken = response.data.data.accessToken
+      this.refreshToken = response.data.data.refreshToken
+    } catch (error) {
+      console.error(error)
       throw new InternalServerError('Unable to obtain access token.')
-
     }
   }
 
   private async refreshAccessToken() {
-    try{
+    try {
       const response = await this.instance.post('/auth/refresh', {
         refreshToken: this.refreshToken,
-      });
+      })
       this.accessToken = response.data.data.accessToken
-  } catch (error) {
-    if (error instanceof AxiosError && error.response?.status === HttpStatusCode.Unauthorized) {
-      this.refreshToken = null;
-      this.accessToken = null;
-      throw new Error('Refresh token expired');
+    } catch (error) {
+      if (
+        error instanceof AxiosError &&
+        error.response?.status === HttpStatusCode.Unauthorized
+      ) {
+        this.refreshToken = null
+        this.accessToken = null
+        throw new Error('Refresh token expired')
+      }
+      throw error
     }
-    throw error;
   }
-  }
- 
+
   protected async getHeaders() {
     const config = {
       headers: {
         'Content-Type': 'application/json; charset=utf-8',
-        Authorization: ''
+        Authorization: '',
       },
-    };
+    }
 
-    if(!this.accessToken){
-      await this.obtainAuthCode();
+    if (!this.accessToken) {
+      await this.obtainAuthCode()
       await this.createAccessToken()
     }
 
     if (this.accessToken && config.headers) {
-      config.headers.Authorization = `Bearer ${this.accessToken}`;
+      config.headers.Authorization = `Bearer ${this.accessToken}`
     }
 
-    return config.headers;
-  };
+    return config.headers
+  }
 
-  async validateCPF(data: {document: string}): Promise<ValidationDocumentType> {
+  async validateCPF(data: { document: string }): Promise<ValidationDocumentType> {
     const headers = await this.getHeaders()
-    try{
-    const response = await this.post(`/cpf/validate`, data, headers);
-    return response.data;
-  } catch (error){
-    throw new InternalServerError('Unable to validate document.')
-  }
+    try {
+      const response = await this.post(`/cpf/validate`, data, headers)
+      return response.data
+    } catch (error) {
+      console.error(error)
+      throw new InternalServerError('Unable to validate document.')
+    }
   }
 
-  async validateCNPJ(data: {document: string}): Promise<ValidationDocumentType> {
+  async validateCNPJ(data: { document: string }): Promise<ValidationDocumentType> {
     const headers = await this.getHeaders()
 
-    try{
-    const response = await this.post(`/cnpj/validate`, data,headers);
-    return response.data;
-  } catch (error){
-    throw new InternalServerError('Unable to validate document.')
-      
-  }
+    try {
+      const response = await this.post(`/cnpj/validate`, data, headers)
+      return response.data
+    } catch (error) {
+      console.error(error)
+
+      throw new InternalServerError('Unable to validate document.')
+    }
   }
 
   async createTransaction(id: string) {
     const headers = await this.getHeaders()
-    try{
-      const response = await this.put(`/transaction/${id}`, {}, headers);
-    return response.data;
-    } catch (error){
-        throw new InternalServerError('Unable to create transaction.')
+    try {
+      const response = await this.put(`/transaction/${id}`, {}, headers)
+      return response.data
+    } catch (error) {
+      console.error(error)
+
+      throw new InternalServerError('Unable to create transaction.')
     }
   }
 
   async getTransactionById(id: string) {
     const headers = await this.getHeaders()
 
-    try{
-      const response = await this.get(`/transaction/${id}`, {}, headers);
-      return response.data;
-    } catch (error){
+    try {
+      const response = await this.get(`/transaction/${id}`, {}, headers)
+      return response.data
+    } catch (error) {
+      console.error(error)
+
       throw new InternalServerError('Unable to get transaction by id.')
-  
     }
   }
 
   async getAllTransaction() {
     const headers = await this.getHeaders()
     try {
-      const response = await this.get(`/transaction`,{},headers);
-      return response.data;
-    } catch (error){
-      throw new InternalServerError('Unable to get transaction list.')
+      const response = await this.get(`/transaction`, {}, headers)
+      return response.data
+    } catch (error) {
+      console.error(error)
 
+      throw new InternalServerError('Unable to get transaction list.')
     }
   }
 }
-
-
