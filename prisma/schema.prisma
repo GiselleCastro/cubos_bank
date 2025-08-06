@@ -8,23 +8,23 @@ datasource db {
 }
 
 model Users {
-  id           String    @id
+  id           String   @id
   name         String
-  document     String    @unique
+  document     String   @unique
   passwordHash String
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime? @updatedAt
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @default(now()) @updatedAt
 
   accounts Accounts[]
 }
 
 model Accounts {
-  id        String    @id
+  id        String   @id
   branch    String
   account   String
-  balance   Int       @default(0)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime? @updatedAt
+  balance   Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
   userId    String
 
   user         Users          @relation(fields: [userId], references: [id])
@@ -38,12 +38,12 @@ enum CardType {
 }
 
 model Cards {
-  id        String    @id
+  id        String   @id
   type      CardType
   number    String
   cvv       String
-  createdAt DateTime  @default(now())
-  updatedAt DateTime? @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
   accountId String
 
   account Accounts @relation(fields: [accountId], references: [id])
@@ -60,7 +60,7 @@ model Transactions {
   description String
   type        TransactionType
   createdAt   DateTime        @default(now())
-  updatedAt   DateTime?       @updatedAt
+  updatedAt   DateTime        @default(now()) @updatedAt
   accountId   String
 
   account Accounts @relation(fields: [accountId], references: [id])
