@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import type { Users } from '@prisma/client';
-import type { CreateUser } from '../types/user.js';
+import type { CreateUser } from '../types/users.js';
 
 export class UsersRepository {
   constructor(private readonly prisma: PrismaClient) {}
@@ -13,11 +13,4 @@ export class UsersRepository {
     return this.prisma.users.findUnique({ where: { document } });
   }
 
-  async findById(id: string): Promise<Users | null> {
-    return this.prisma.users.findUnique({ where: { id } });
-  }
-
-  async findAll(): Promise<Users[]> {
-    return this.prisma.users.findMany();
-  }
 }

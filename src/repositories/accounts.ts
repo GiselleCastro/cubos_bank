@@ -1,0 +1,25 @@
+import { PrismaClient } from '@prisma/client';
+import type { Accounts } from '@prisma/client';
+
+type CreateAccount = {
+  id: string
+  branch: string,
+  account: string,
+  userId: string,
+}
+
+export class AccountsRepository {
+  constructor(private readonly prisma: PrismaClient) {}
+
+  async create(data: CreateAccount): Promise<Accounts> {
+    return this.prisma.accounts.create({ data });
+  }
+
+  async findByUserId(userId: string): Promise<Accounts[]> {
+    return this.prisma.accounts.findMany({ where: { userId } });
+  }
+
+  async findByAccountId(accountId: string): Promise<Accounts| null> {
+    return this.prisma.accounts.findUnique({ where: { id: accountId } });
+  }
+}

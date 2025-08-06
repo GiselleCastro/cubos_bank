@@ -1,7 +1,13 @@
 import { RestClient } from "./common/restClient";
 import type { AxiosInstance } from "axios";
 import { HttpStatusCode, AxiosError } from "axios";
+import { InternalServerError } from "../err/appError";
 
+export type ValidationDocumentType = {
+  document: string;
+  status: number;
+  reason: string;
+}
 export class CompilanceAPI extends RestClient {
   private authCode: string | null = null;
   private accessToken: string | null =  null;
@@ -74,19 +80,33 @@ export class CompilanceAPI extends RestClient {
   // }
 
   private async obtainAuthCode() {
-    const response = await this.post(`/auth/code`, {
-      "email": process.env.API_COMPILANCE_CUBOS_CLIENT,
-      "password": process.env.API_COMPILANCE_CUBOS_SECRET
-    });
-    this.authCode = response.data.data.authCode
+    try{
+
+      const response = await this.post(`/auth/code`, {
+        "email": process.env.API_COMPILANCE_CUBOS_CLIENT,
+        "password": process.env.API_COMPILANCE_CUBOS_SECRET
+      });
+      this.authCode = response.data.data.authCode
+    } catch (error){
+
+      throw new InternalServerError('Unable to obtain auth code.')
+
+
+    }
   }
 
   private async createAccessToken() {
-    const response = await this.post(`/auth/token`, {
-      authCode: this.authCode
-    });
-    this.accessToken = response.data.data.accessToken;
-    this.refreshToken = response.data.data.refreshToken;
+    try{
+
+      const response = await this.post(`/auth/token`, {
+        authCode: this.authCode
+      });
+      this.accessToken = response.data.data.accessToken;
+      this.refreshToken = response.data.data.refreshToken;
+    } catch(error){
+      throw new InternalServerError('Unable to obtain access token.')
+
+    }
   }
 
   private async refreshAccessToken() {
@@ -125,22 +145,24 @@ export class CompilanceAPI extends RestClient {
     return config.headers;
   };
 
-  async validateCPF(data: {document: string}) {
+  async validateCPF(data: {document: string}): Promise<ValidationDocumentType> {
     const headers = await this.getHeaders()
     try{
     const response = await this.post(`/cpf/validate`, data, headers);
     return response.data;
   } catch (error){
+    throw new InternalServerError('Unable to validate document.')
   }
   }
 
-  async validateCNPJ(data: {document: string}) {
+  async validateCNPJ(data: {document: string}): Promise<ValidationDocumentType> {
     const headers = await this.getHeaders()
 
     try{
     const response = await this.post(`/cnpj/validate`, data,headers);
     return response.data;
   } catch (error){
+    throw new InternalServerError('Unable to validate document.')
       
   }
   }
@@ -151,7 +173,7 @@ export class CompilanceAPI extends RestClient {
       const response = await this.put(`/transaction/${id}`, {}, headers);
     return response.data;
     } catch (error){
-        
+        throw new InternalServerError('Unable to create transaction.')
     }
   }
 
@@ -162,17 +184,18 @@ export class CompilanceAPI extends RestClient {
       const response = await this.get(`/transaction/${id}`, {}, headers);
       return response.data;
     } catch (error){
+      throw new InternalServerError('Unable to get transaction by id.')
   
     }
   }
 
   async getAllTransaction() {
     const headers = await this.getHeaders()
-
     try {
       const response = await this.get(`/transaction`,{},headers);
       return response.data;
     } catch (error){
+      throw new InternalServerError('Unable to get transaction list.')
 
     }
   }

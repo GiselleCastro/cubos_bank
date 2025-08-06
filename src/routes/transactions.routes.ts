@@ -1,12 +1,13 @@
 import { Router } from 'express';
-import type { Request, Response } from 'express';
 import { TransactionsControllerFactory } from '../controllers/factories/transactions.controller.factory';
-
+import { AuthMiddleware } from '../middlewares/authentication';
+import { ValidateSchemaMiddleware } from '../middlewares/schemaValidation';
 export const router = Router();
 
 const controller = TransactionsControllerFactory.make();
 
-router.post('/', (req: Request, res: Response) => controller.registerUser(req, res));
-router.get('/', (req: Request, res: Response) => controller.registerUser(req, res));
-router.post('/internal', (req: Request, res: Response) => controller.registerUser(req, res));
-router.post('/:transactionId/revert', (req: Request, res: Response) => controller.registerUser(req, res));
+router.use(AuthMiddleware.handle())
+router.post('/', ValidateSchemaMiddleware.handle(), controller.registerUser());
+router.get('/', controller.registerUser());
+router.post('/internal', ValidateSchemaMiddleware.handle(), controller.registerUser());
+router.post('/:transactionId/revert', ValidateSchemaMiddleware.handle(), controller.registerUser());

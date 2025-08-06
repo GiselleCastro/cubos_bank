@@ -1,24 +1,32 @@
 import type { Request, Response } from 'express';
-import { AccountsService } from '../use-cases/accounts.service';
+import type { CreateAccountUseCase } from '../use-cases/createAccount';
+import type { ListOfAccountsUseCase } from '../use-cases/ListOfAccounts';
+import { HttpStatusCode } from 'axios';
 
 export class AccountsController {
-  constructor(private readonly accountsService: AccountsService) {}
+  constructor(private readonly createAccountUseCase: CreateAccountUseCase, private readonly listOfAccountsUseCase: ListOfAccountsUseCase) {}
 
-  async registerUser(req: Request, res: Response) {
+ createAccount(){
+  return async (req: Request, res: Response) =>{
     try {
-      const result = await this.accountsService.createUser(req.body);
-      return res.status(201).json(result);
+      const userId = req.headers.authorization as string;
+      const result = await this.createAccountUseCase.execute(req.body, userId);
+      return res.status(HttpStatusCode.Created).json(result);
     } catch (error) {
-      return res.status(500).json({ error: 'Erro ao registrar usuário' });
+      return res.status(500).json({ error });
     }
   }
+}
 
-  async login(req: Request, res: Response) {
+listOfAccounts(){
+  return async (req: Request, res: Response) =>{
     try {
-      const result = await this.accountsService.login(req.body);
-      return res.status(200).json(result);
+      const userId = req.headers.authorization as string;
+      const result = await this.listOfAccountsUseCase.execute(userId);
+      return res.status(HttpStatusCode.Ok).json(result);
     } catch (error) {
-      return res.status(401).json({ error: 'Login inválido' });
+      return res.status(500).json({ error });
     }
   }
+}
 }

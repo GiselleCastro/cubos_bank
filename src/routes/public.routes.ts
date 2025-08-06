@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { ValidateSchemaMiddleware } from '../middlewares/schemaValidation.middleware.js';
+import { ValidateSchemaMiddleware } from '../middlewares/schemaValidation.js';
 import { createUserBodySchema, loginBodySchema } from '../schema/user.js';
 import { UsersControllerFactory } from '../controllers/factories/users.controller.factory.js';
 

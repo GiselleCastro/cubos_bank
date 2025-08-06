@@ -7,7 +7,7 @@ export const loginBodySchema = z.object({
     .refine((number) => /^\d+$/.test(number), {
       message: "The document must contain only digits",
     })
-    .refine((number) => number.length === 11 || number.length === 16, {
+    .refine((number) => number.length === 11 || number.length === 14, {
       message: "The document must be a CPF or CNPJ.",
     }),
     password: z.string(),

@@ -10,6 +10,10 @@ export type Token = {
   token: string;
 }
 
+export type TokenDecode = {
+  id: string;
+}
+
 export type CreateUser = {
   id: string;
   name: string;
