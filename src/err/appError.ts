@@ -33,3 +33,12 @@ export class InternalServerError extends AppError {
       super(message, HttpStatusCode.UnprocessableEntity);
     }
   }
+
+
+  export class ConflictError extends AppError {
+    constructor(message = 'Conflict') {
+      super(message, HttpStatusCode.Conflict
+        
+      );
+    }
+  }

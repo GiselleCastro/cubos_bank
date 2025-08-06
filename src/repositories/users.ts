@@ -12,5 +12,4 @@ export class UsersRepository {
   async findByDocument(document: string): Promise<Users | null> {
     return this.prisma.users.findUnique({ where: { document } });
   }
-
 }

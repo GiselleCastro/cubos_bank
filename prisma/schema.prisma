@@ -33,14 +33,14 @@ model Accounts {
 }
 
 enum CardType {
-  PHYSICAL @map("physical")
-  VIRTUAL  @map("virtual")
+  physical
+  virtual
 }
 
 model Cards {
   id        String   @id
   type      CardType
-  number    String
+  number    String   @unique
   cvv       String
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt

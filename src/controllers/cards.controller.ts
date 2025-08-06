@@ -1,24 +1,22 @@
-import type { Request, Response } from 'express';
-import { CardsService } from '../use-cases/cards.service';
+import type { NextFunction, Request, Response } from 'express';
+import { ListOfCardsUseCase } from '../use-cases/listOfCards';
+import { HttpStatusCode } from 'axios';
 
 export class CardsController {
-  constructor(private readonly cardsService: CardsService) {}
+  constructor(private readonly listOfCardsUseCase: ListOfCardsUseCase) {}
 
-  async registerUser(req: Request, res: Response) {
+  listOfCards(){
+    return async(req: Request, res: Response, next: NextFunction) =>{
     try {
-      const result = await this.cardsService.createUser(req.body);
-      return res.status(201).json(result);
+      const userId = req.headers.authorization as string;
+      const itemsPerPage = req.query?.itemsPerPage
+      const currentPage = req.query?.currentPage
+      const args = {userId, ...(itemsPerPage && {itemsPerPage: +itemsPerPage}), ...(currentPage && {currentPage: +currentPage})}
+      const result = await this.listOfCardsUseCase.execute(args);
+      return res.status(HttpStatusCode.Ok).json(result);
     } catch (error) {
-      return res.status(500).json({ error: 'Erro ao registrar usuário' });
+      next(error)
     }
   }
-
-  async login(req: Request, res: Response) {
-    try {
-      const result = await this.cardsService.login(req.body);
-      return res.status(200).json(result);
-    } catch (error) {
-      return res.status(401).json({ error: 'Login inválido' });
-    }
-  }
+}
 }

@@ -12,8 +12,7 @@ export class ListOfAccountsUseCase {
       const accountsRegistered = await this.accountsRepository.findByUserId(userId);
       return accountsRegistered
     }catch(error: any){
-      console.log(error)
-    throw new InternalServerError(error?.message)
+    throw new InternalServerError(error?.message || 'Error listing accounts.')
   }
 }
 }

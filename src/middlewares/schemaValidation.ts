@@ -2,11 +2,12 @@ import type { Request, Response, NextFunction } from 'express';
 import { HttpStatusCode } from 'axios';
 import { ZodObject } from 'zod';
 
-enum Params {
+export enum Params {
   BODY = 'body', 
-  QUERY = 'query'
+  QUERY = 'query',
+  PARAMS = 'params'
 }
-type ParamType = Params.BODY | Params.QUERY
+type ParamType = Params.BODY | Params.QUERY | Params.PARAMS
 
 export class ValidateSchemaMiddleware {
   static handle(schema: ZodObject, param: ParamType = Params.BODY) {

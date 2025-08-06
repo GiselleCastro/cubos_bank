@@ -24,3 +24,7 @@ export const createCardBodySchema = z.object({
     })
     .length(3),
 });
+
+export const idAccountParamsSchema = z.object({
+    accountId: z.uuid(),
+});

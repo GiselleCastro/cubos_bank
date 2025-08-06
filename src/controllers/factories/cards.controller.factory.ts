@@ -1,9 +1,9 @@
 import { CardsController } from "../cards.controller";
-import { CardsService } from '../services/cards.service';
+import { ListOfCardsUseCaseFactory } from "../../use-cases/factories/listOfCards.factory";
 
 export class CardsControllerFactory {
   static make(): CardsController {
-    const service = new CardsService();
-    return new CardsController(service);
+    const listOfCards = ListOfCardsUseCaseFactory.make();
+    return new CardsController(listOfCards);
   }
 }

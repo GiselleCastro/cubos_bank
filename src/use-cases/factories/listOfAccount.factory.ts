@@ -1,4 +1,4 @@
-import { ListOfAccountsUseCase } from "../ListOfAccounts";
+import { ListOfAccountsUseCase } from "../listOfAccounts";
 import { AccountsRepositoryFactory} from "../../repositories/factories/accounts.factory";
 
 export class ListOfAccountsUseCaseFactory {

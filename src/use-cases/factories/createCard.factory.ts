@@ -1,9 +1,9 @@
-import { CreateAccountUseCase } from "../createAccount";
+import { CreateCardUseCase } from "../createCard";
 import { CardsRepositoryFactory } from "../../repositories/factories/cards.factory";
 
-export class CreateAccountUseCaseFactory {
-  static make(): CreateAccountUseCase {
+export class CreateCardUseCaseFactory {
+  static make(): CreateCardUseCase {
     const repository = CardsRepositoryFactory.make()
-    return new CreateAccountUseCase(repository);
+    return new CreateCardUseCase(repository);
   }
 }
