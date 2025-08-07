@@ -74,7 +74,6 @@ export class TransactionsController {
           ...(itemsPerPage && { itemsPerPage: +itemsPerPage }),
           ...(currentPage && { currentPage: +currentPage }),
           ...(type && { type: type as TransactionType }),
-
         }
         const result = await this.listOfAllTransactionsUseCase.execute(args)
         return res.status(HttpStatusCode.Ok).json(result)

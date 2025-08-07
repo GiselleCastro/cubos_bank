@@ -39,7 +39,7 @@ export class CreateTransactionUseCase {
         convertReaisToCents(data.value),
       )
 
-      let balanceCurrent
+      let balanceCurrent: number
 
       if (transactionType === TransactionType.debit) {
         balanceCurrent = registeredAccount.balance - absoluteValueInCentsOfTheTransaction

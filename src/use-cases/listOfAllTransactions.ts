@@ -4,8 +4,11 @@ import type {
   PaginationByTransaction,
   TransactionsReturnPagination,
 } from '../types/transactions'
-import { convertCentsToReais } from '../utils/moneyConverter'
-import { TransactionType } from '@prisma/client'
+import {
+  convertAbsoluteAmountToAmount,
+  convertCentsToReais,
+} from '../utils/moneyConverter'
+
 export class ListOfAllTransactionsUseCase {
   constructor(private readonly transactionsRepository: TransactionsRepository) {}
 
@@ -30,10 +33,10 @@ export class ListOfAllTransactionsUseCase {
         const absoluteValueInReaisOfTheTransaction = convertCentsToReais(i.value)
         return {
           id: i.id,
-          value:
-            i.type === TransactionType.credit
-              ? absoluteValueInReaisOfTheTransaction
-              : -absoluteValueInReaisOfTheTransaction,
+          value: convertAbsoluteAmountToAmount(
+            absoluteValueInReaisOfTheTransaction,
+            i.type,
+          ),
           description: i.description,
           createdAt: i.createdAt,
           updatedAt: i.updatedAt,

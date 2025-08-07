@@ -19,6 +19,12 @@ export type CreateTransaction = CreateTransactionData & {
   id: string
   accountId: string
   type: TransactionType
+  isReverted?: boolean
+  reversedById?: string
+}
+
+export type RevertTransaction = CreateTransaction & {
+  reversedById: string
 }
 
 export type PaginationByTransaction = z.infer<typeof transactionPaginationSchema> & {
