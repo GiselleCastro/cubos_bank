@@ -1,4 +1,4 @@
-import app from './app'
+import { app } from './app'
 
 const PORT = process.env.SERVER_PORT
 const HOST = process.env.SERVER_HOST

@@ -45,8 +45,7 @@ export class CreateUserUseCase {
       }
 
       const statusCorrespondingToTheValidDocument = 1
-
-      if (documentAnalysis?.status !== statusCorrespondingToTheValidDocument) {
+      if (documentAnalysis?.data.status !== statusCorrespondingToTheValidDocument) {
         throw new UnprocessableEntityError('Invalid document.')
       }
 

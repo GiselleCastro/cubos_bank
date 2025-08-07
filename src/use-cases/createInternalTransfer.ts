@@ -1,48 +1,79 @@
 import type { TransactionsRepository } from '../repositories/transactions'
-import { AppError, InternalServerError } from '../err/appError'
+import {
+  AppError,
+  BadRequestError,
+  InternalServerError,
+  PaymentRequiredError,
+} from '../err/appError'
 import type { CreateInternalTransferData } from '../types/transactions'
 import { v4 as uuid } from 'uuid'
-import { InternalTransferType } from '@prisma/client'
+import { TransactionType } from '@prisma/client'
+import { AccountsRepository } from '../repositories/accounts'
+import { convertReaisToCents } from '../utils/moneyConverter'
 
 export class CreateInternalTransferUseCase {
-  constructor(private readonly transactionsRepository: TransactionsRepository) {}
+  constructor(
+    private readonly accountsRepository: AccountsRepository,
+    private readonly transactionsRepository: TransactionsRepository,
+  ) {}
 
   async execute(data: CreateInternalTransferData, accountId: string) {
     try {
-      const registeredAccount = await this.accountsRepository.findByAccountId(accountId)
+      const registeredAccountOwner =
+        await this.accountsRepository.findByAccountId(accountId)
+      if (!registeredAccountOwner) {
+        throw new BadRequestError('Non-existent account for owner.')
+      }
 
-      if (!registeredAccount) {
-        throw new BadRequestError('Non-existent account.')
+      const registeredAccountReceiver = await this.accountsRepository.findByAccountId(
+        data.receiverAccountId,
+      )
+
+      if (!registeredAccountReceiver) {
+        throw new BadRequestError('Non-existent account for receiver.')
       }
 
       const transactionType =
         data.value > 0 ? TransactionType.credit : TransactionType.debit
 
-      const absoluteValueInCentsOfTheTransaction = Math.abs(
+      const absoluteAmountInCentsOfTheTransaction = Math.abs(
         convertReaisToCents(data.value),
       )
 
-      let balanceCurrent
+      let balanceCurrentOwner: number
+      let balanceCurrentReceiver: number
 
       if (transactionType === TransactionType.debit) {
-        balanceCurrent = registeredAccount.balance - absoluteValueInCentsOfTheTransaction
-
-        if (balanceCurrent < 0) {
-          throw new PaymentRequiredError('Insufficient balance.')
+        balanceCurrentOwner =
+          registeredAccountOwner.balance - absoluteAmountInCentsOfTheTransaction
+        if (balanceCurrentOwner < 0) {
+          throw new PaymentRequiredError("Insufficient balance in the owner's account.")
         }
+        balanceCurrentReceiver =
+          registeredAccountReceiver.balance + absoluteAmountInCentsOfTheTransaction
       } else {
-        balanceCurrent = registeredAccount.balance + absoluteValueInCentsOfTheTransaction
+        balanceCurrentReceiver =
+          registeredAccountReceiver.balance - absoluteAmountInCentsOfTheTransaction
+        if (balanceCurrentReceiver < 0) {
+          throw new PaymentRequiredError(
+            "Insufficient balance in the receiver's account.",
+          )
+        }
+        balanceCurrentOwner =
+          registeredAccountOwner.balance + absoluteAmountInCentsOfTheTransaction
       }
 
-      const registeredTransaction = await this.transactionsRepository.create(
+      const registeredTransaction = await this.transactionsRepository.createInternal(
         {
           id: uuid(),
-          value: absoluteValueInCentsOfTheTransaction,
+          value: absoluteAmountInCentsOfTheTransaction,
           type: transactionType,
           description: data.description,
           accountId,
         },
-        balanceCurrent,
+        data.receiverAccountId,
+        balanceCurrentOwner,
+        balanceCurrentReceiver,
       )
 
       const transactionCreated = {

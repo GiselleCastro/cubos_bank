@@ -35,26 +35,26 @@ export class CreateTransactionUseCase {
       const transactionType =
         data.value > 0 ? TransactionType.credit : TransactionType.debit
 
-      const absoluteValueInCentsOfTheTransaction = Math.abs(
+      const absoluteAmountInCentsOfTheTransaction = Math.abs(
         convertReaisToCents(data.value),
       )
 
       let balanceCurrent: number
 
       if (transactionType === TransactionType.debit) {
-        balanceCurrent = registeredAccount.balance - absoluteValueInCentsOfTheTransaction
+        balanceCurrent = registeredAccount.balance - absoluteAmountInCentsOfTheTransaction
 
         if (balanceCurrent < 0) {
           throw new PaymentRequiredError('Insufficient balance.')
         }
       } else {
-        balanceCurrent = registeredAccount.balance + absoluteValueInCentsOfTheTransaction
+        balanceCurrent = registeredAccount.balance + absoluteAmountInCentsOfTheTransaction
       }
 
       const registeredTransaction = await this.transactionsRepository.create(
         {
           id: uuid(),
-          value: absoluteValueInCentsOfTheTransaction,
+          value: absoluteAmountInCentsOfTheTransaction,
           type: transactionType,
           description: data.description,
           accountId,

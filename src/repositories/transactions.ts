@@ -38,6 +38,31 @@ export class TransactionsRepository {
     return transaction
   }
 
+  async createInternal(
+    data: CreateTransaction,
+    receiverAccountId: string,
+    balanceOwner: number,
+    balanceReceiver: number,
+  ): Promise<Transactions> {
+    const [transactionInternal] = await this.prisma.$transaction([
+      this.prisma.transactions.create({ data }),
+      this.prisma.accounts.update({
+        where: { id: data.accountId },
+        data: {
+          balance: balanceOwner,
+        },
+      }),
+      this.prisma.accounts.update({
+        where: { id: receiverAccountId },
+        data: {
+          balance: balanceReceiver,
+        },
+      }),
+    ])
+
+    return transactionInternal
+  }
+
   async findByAccountId(
     accountId: string,
     skip: number,

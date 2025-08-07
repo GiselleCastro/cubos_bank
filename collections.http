@@ -1,0 +1,62 @@
+@BASE_URL = http://localhost:4000
+
+
+POST {{BASE_URL}}/people
+Content-Type: application/json
+
+{
+    "document": "012.345.678-90",
+    "password": "123456",
+    "name": "Giselle"
+}
+###
+
+@document = {{login.request.body.document}}
+@password = {{login.request.body.password}}
+
+
+# @name login
+POST {{BASE_URL}}/login
+Content-Type: application/json
+
+{
+    "document": "{{document}}",
+    "password": "{{password}}"
+}
+###
+@token = {{login.response.body.token}}
+###
+
+POST {{BASE_URL}}/accounts
+Content-Type: application/json
+Authorization: {{token}}
+
+{
+    "branch": "011",
+    "account": "2033392-5"
+}
+###
+
+GET {{BASE_URL}}/accounts
+Authorization: {{token}}
+###
+
+@accountId = edf4eb55-13a5-4b01-9ff6-4a506090cd24
+
+POST {{BASE_URL}}/accounts/{{accountId}}/cards
+Content-Type: application/json
+Authorization: {{token}}
+
+{
+  "type": "virtual",
+  "number": "5179 7447 8594 6978",
+  "cvv": "512"
+}
+###
+
+GET {{BASE_URL}}/accounts/{{accountId}}/cards
+Authorization: {{token}}
+
+###
+GET {{BASE_URL}}/accounts/{{accountId}}/balance
+Authorization: {{token}}

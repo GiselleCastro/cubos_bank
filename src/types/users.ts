@@ -13,10 +13,15 @@ export type TokenDecode = {
   id: string
 }
 
-export type ValidationDocumentType = {
+type DocumentInfo = {
   document: string
   status: number
   reason: string
+}
+
+export type ValidationDocumentType = {
+  success: boolean
+  data: DocumentInfo
 }
 
 export type CreateUser = {
