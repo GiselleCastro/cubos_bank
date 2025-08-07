@@ -1,6 +1,6 @@
 import type { AccountsRepository } from '../repositories/accounts'
 import { AppError, BadRequestError, InternalServerError } from '../err/appError'
-
+import { convertCentsToReais } from '../utils/moneyConverter'
 export class CheckBalanceUseCase {
   constructor(private readonly accountsRepository: AccountsRepository) {}
 
@@ -13,7 +13,7 @@ export class CheckBalanceUseCase {
       }
 
       const balance = {
-        balance: this.convertCentsToReais(registeredAccount.balance),
+        balance: convertCentsToReais(registeredAccount.balance),
       }
 
       return balance
@@ -24,10 +24,5 @@ export class CheckBalanceUseCase {
         (error as any)?.message || 'Error checking balance.',
       )
     }
-  }
-
-  private convertCentsToReais(valueInCents: number) {
-    const reaisInCents = 100
-    return valueInCents / reaisInCents
   }
 }

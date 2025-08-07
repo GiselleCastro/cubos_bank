@@ -37,3 +37,9 @@ export class ConflictError extends AppError {
     super(message, HttpStatusCode.Conflict)
   }
 }
+
+export class PaymentRequiredError extends AppError {
+  constructor(message = 'PaymentRequired') {
+    super(message, HttpStatusCode.PaymentRequired)
+  }
+}

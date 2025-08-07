@@ -11,7 +11,7 @@ app.use(express.json())
 app.use('/', userRoutes)
 app.use('/accounts', accountRoutes)
 app.use('/cards', cardRoutes)
-//app.use('/accounts/:accountId/transactions', transactionRoutes);
+app.use('/accounts/:accountId/transactions', transactionRoutes)
 app.use(ErrorHandler.handle())
 
 export default app

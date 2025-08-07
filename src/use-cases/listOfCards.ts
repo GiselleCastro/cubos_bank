@@ -1,6 +1,6 @@
 import type { CardsRepository } from '../repositories/cards'
 import { AppError, InternalServerError } from '../err/appError'
-import type { CreateCardReturnPagination, PaginationByUser } from '../types/cards'
+import type { CardsReturnPagination, PaginationByUser } from '../types/cards'
 
 export class ListOfCardsUseCase {
   constructor(private readonly cardsRepository: CardsRepository) {}
@@ -9,7 +9,7 @@ export class ListOfCardsUseCase {
     userId,
     itemsPerPage = 10,
     currentPage = 1,
-  }: PaginationByUser): Promise<CreateCardReturnPagination> {
+  }: PaginationByUser): Promise<CardsReturnPagination> {
     try {
       const skip = (currentPage - 1) * itemsPerPage
       const take = itemsPerPage

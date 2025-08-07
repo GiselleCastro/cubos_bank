@@ -50,8 +50,8 @@ model Cards {
 }
 
 enum TransactionType {
-  CREDIT
-  DEBIT
+  credit
+  debit
 }
 
 model Transactions {

@@ -1,7 +1,6 @@
 import { z } from 'zod'
 import { createCardBodySchema } from '../schema/accounts'
-
-import { listOfCardsBodySchema } from '../schema/cards'
+import { Pagination } from '.'
 
 export type CreateCardData = z.infer<typeof createCardBodySchema>
 
@@ -16,13 +15,11 @@ export type CreateCardReturn = CreateCardData & {
   updatedAt: Date
 }
 
-type Pagination = z.infer<typeof listOfCardsBodySchema>
-
 export type PaginationByUser = Pagination & {
   userId: string
 }
 
-export type CreateCardReturnPagination = {
+export type CardsReturnPagination = {
   cards: CreateCardReturn[]
   pagination: Pagination
 }

@@ -1,24 +1,86 @@
-import type { Request, Response } from 'express'
-import type { TransactionsService } from '../use-cases/transactions.service'
+import type { NextFunction, Request, Response } from 'express'
+import type { CreateTransactionUseCase } from '../use-cases/createTransaction'
+import type { ListOfAllTransactionsUseCase } from '../use-cases/listOfAllTransactions'
+import type { CreateInternalTransferUseCase } from '../use-cases/createInternalTransfer'
+import type { ReverseTransactionUseCase } from '../use-cases/reverseTransaction'
+import type { TransactionType } from '@prisma/client'
+import { HttpStatusCode } from 'axios'
 
 export class TransactionsController {
-  constructor(private readonly transactionsService: TransactionsService) {}
+  constructor(
+    private readonly createTransactionUseCase: CreateTransactionUseCase,
+    private readonly listOfAllTransactionsUseCase: ListOfAllTransactionsUseCase,
+    private readonly createInternalTransferUseCase: CreateInternalTransferUseCase,
+    private readonly reverseTransactionUseCase: ReverseTransactionUseCase,
+  ) {}
 
-  async registerUser(req: Request, res: Response) {
-    try {
-      const result = await this.transactionsService.createUser(req.body)
-      return res.status(201).json(result)
-    } catch (error) {
-      return res.status(500).json({ error: 'Erro ao registrar usuário' })
+  createTransaction() {
+    return async (req: Request, res: Response, next: NextFunction) => {
+      try {
+        const userId = req.headers.authorization as string
+        const accountId = req.params.accountId as string
+        const result = await this.createTransactionUseCase.execute(
+          req.body,
+          userId,
+          accountId,
+        )
+        return res.status(HttpStatusCode.Created).json(result)
+      } catch (error) {
+        next(error)
+      }
     }
   }
 
-  async login(req: Request, res: Response) {
-    try {
-      const result = await this.transactionsService.login(req.body)
-      return res.status(200).json(result)
-    } catch (error) {
-      return res.status(401).json({ error: 'Login inválido' })
+  createInternalTransfer() {
+    return async (req: Request, res: Response, next: NextFunction) => {
+      try {
+        const accountId = req.params.accountId as string
+        const result = await this.createInternalTransferUseCase.execute(
+          req.body,
+          accountId,
+        )
+        return res.status(HttpStatusCode.Created).json(result)
+      } catch (error) {
+        next(error)
+      }
+    }
+  }
+
+  reverseTransaction() {
+    return async (req: Request, res: Response, next: NextFunction) => {
+      try {
+        const accountId = req.params.accountId as string
+        const transactionId = req.params.transactionId as string
+        const result = await this.reverseTransactionUseCase.execute(
+          accountId,
+          transactionId,
+        )
+        return res.status(HttpStatusCode.Ok).json(result)
+      } catch (error) {
+        next(error)
+      }
+    }
+  }
+
+  listOfAllTransactions() {
+    return async (req: Request, res: Response, next: NextFunction) => {
+      try {
+        const accountId = req.params.accountId as string
+        const itemsPerPage = req.query?.itemsPerPage
+        const currentPage = req.query?.currentPage
+        const type = req.query?.type
+        const args = {
+          accountId,
+          ...(itemsPerPage && { itemsPerPage: +itemsPerPage }),
+          ...(currentPage && { currentPage: +currentPage }),
+          ...(type && { type: type as TransactionType }),
+
+        }
+        const result = await this.listOfAllTransactionsUseCase.execute(args)
+        return res.status(HttpStatusCode.Ok).json(result)
+      } catch (error) {
+        next(error)
+      }
     }
   }
 }
