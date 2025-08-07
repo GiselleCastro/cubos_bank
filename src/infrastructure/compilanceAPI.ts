@@ -1,13 +1,9 @@
 import { RestClient } from './common/restClient'
 import type { AxiosInstance } from 'axios'
 import { HttpStatusCode, AxiosError } from 'axios'
-import { InternalServerError } from '../err/appError'
+import { AppError, InternalServerError, UnauthorizedError } from '../err/appError'
+import type { ValidationDocumentType } from '../types/users'
 
-export type ValidationDocumentType = {
-  document: string
-  status: number
-  reason: string
-}
 export class CompilanceAPI extends RestClient {
   private authCode: string | null = null
   private accessToken: string | null = null
@@ -100,6 +96,15 @@ export class CompilanceAPI extends RestClient {
       this.accessToken = response.data.data.accessToken
       this.refreshToken = response.data.data.refreshToken
     } catch (error) {
+      if (
+        error instanceof AxiosError &&
+        error.response?.status === HttpStatusCode.Unauthorized
+      ) {
+        this.refreshToken = null
+        this.accessToken = null
+        this.authCode = null
+        throw new UnauthorizedError('Invalid auth code.')
+      }
       console.error(error)
       throw new InternalServerError('Unable to obtain access token.')
     }
@@ -118,7 +123,8 @@ export class CompilanceAPI extends RestClient {
       ) {
         this.refreshToken = null
         this.accessToken = null
-        throw new Error('Refresh token expired')
+        this.authCode = null
+        throw new UnauthorizedError('Refresh token expired')
       }
       throw error
     }
@@ -150,6 +156,7 @@ export class CompilanceAPI extends RestClient {
       const response = await this.post(`/cpf/validate`, data, headers)
       return response.data
     } catch (error) {
+      if (error instanceof AppError) throw error
       console.error(error)
       throw new InternalServerError('Unable to validate document.')
     }
@@ -162,8 +169,8 @@ export class CompilanceAPI extends RestClient {
       const response = await this.post(`/cnpj/validate`, data, headers)
       return response.data
     } catch (error) {
+      if (error instanceof AppError) throw error
       console.error(error)
-
       throw new InternalServerError('Unable to validate document.')
     }
   }
@@ -174,8 +181,8 @@ export class CompilanceAPI extends RestClient {
       const response = await this.put(`/transaction/${id}`, {}, headers)
       return response.data
     } catch (error) {
+      if (error instanceof AppError) throw error
       console.error(error)
-
       throw new InternalServerError('Unable to create transaction.')
     }
   }
@@ -187,8 +194,8 @@ export class CompilanceAPI extends RestClient {
       const response = await this.get(`/transaction/${id}`, {}, headers)
       return response.data
     } catch (error) {
+      if (error instanceof AppError) throw error
       console.error(error)
-
       throw new InternalServerError('Unable to get transaction by id.')
     }
   }
@@ -199,8 +206,8 @@ export class CompilanceAPI extends RestClient {
       const response = await this.get(`/transaction`, {}, headers)
       return response.data
     } catch (error) {
+      if (error instanceof AppError) throw error
       console.error(error)
-
       throw new InternalServerError('Unable to get transaction list.')
     }
   }

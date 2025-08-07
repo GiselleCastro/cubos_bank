@@ -4,7 +4,8 @@ import { HttpStatusCode } from 'axios'
 
 export class ErrorHandler {
   static handle() {
-    return (error: any, req: Request, res: Response, next: NextFunction) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (error: any, req: Request, res: Response, _: NextFunction) => {
       if (error instanceof AppError) {
         return res.status(error.statusCode).json({
           message: error.message,

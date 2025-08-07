@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 import type { Cards, CardType } from '@prisma/client'
-import { CreateCard } from '../types/cards'
+import type { CreateCard } from '../types/cards'
 
 export class CardsRepository {
   constructor(private readonly prisma: PrismaClient) {}

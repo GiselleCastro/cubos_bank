@@ -1,10 +1,10 @@
 import { Router } from 'express'
-import { AccountsControllerFactory } from '../controllers/factories/accounts.controller.factory'
-import { ValidateSchemaMiddleware } from '../middlewares/schemaValidation'
-import { createAccountBodySchema, idAccountParamsSchema } from '../schema/account'
 import { AuthMiddleware } from '../middlewares/authentication'
+import { ValidateSchemaMiddleware } from '../middlewares/schemaValidation'
 import { Params } from '../middlewares/schemaValidation'
-import { createCardBodySchema } from '../schema/account'
+import { AccountsControllerFactory } from '../controllers/factories/accounts.controller.factory'
+import { createAccountBodySchema, idAccountParamsSchema } from '../schema/accounts'
+import { createCardBodySchema } from '../schema/accounts'
 
 export const router = Router()
 
@@ -22,6 +22,11 @@ router.post(
   ValidateSchemaMiddleware.handle(idAccountParamsSchema, Params.PARAMS),
   ValidateSchemaMiddleware.handle(createCardBodySchema),
   controller.createCard(),
+)
+router.get(
+  '/:accountId/cards',
+  ValidateSchemaMiddleware.handle(idAccountParamsSchema, Params.PARAMS),
+  controller.listOfCardsByAccount(),
 )
 router.get(
   '/:accountId/balance',

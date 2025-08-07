@@ -1,4 +1,4 @@
-import { loginBodySchema, createUserBodySchema } from '../schema/user'
+import { loginBodySchema, createUserBodySchema } from '../schema/users'
 import { z } from 'zod'
 
 export type LoginDataLoginData = z.infer<typeof loginBodySchema>
@@ -11,6 +11,12 @@ export type Token = {
 
 export type TokenDecode = {
   id: string
+}
+
+export type ValidationDocumentType = {
+  document: string
+  status: number
+  reason: string
 }
 
 export type CreateUser = {

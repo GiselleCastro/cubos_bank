@@ -1,6 +1,6 @@
 import type { CardsRepository } from '../repositories/cards'
 import { AppError, ConflictError, InternalServerError } from '../err/appError'
-import { CreateCardData, CreateCardReturn } from '../types/cards'
+import type { CreateCardData, CreateCardReturn } from '../types/cards'
 import { v4 as uuid } from 'uuid'
 import { CardType } from '@prisma/client'
 
@@ -12,19 +12,19 @@ export class CreateCardUseCase {
 
     try {
       if (data.type == CardType.physical) {
-        const registeredAccounts = await this.cardsRepository.findByAccountIdAndType(
+        const registeredCard = await this.cardsRepository.findByAccountIdAndType(
           accountId,
           data.type,
         )
-        console.log(registeredAccounts)
-        if (registeredAccounts) {
+
+        if (registeredCard) {
           throw new ConflictError('There is already a physical card for this account')
         }
       }
 
-      const cardFound = await this.cardsRepository.findByCardNumber(data.number)
-      console.log(cardFound, '>>')
-      if (cardFound) {
+      const registeredCard = await this.cardsRepository.findByCardNumber(data.number)
+
+      if (registeredCard) {
         throw new ConflictError('This card already exists.')
       }
 
@@ -36,7 +36,7 @@ export class CreateCardUseCase {
 
       const startingPositionOfTheLastFourDigitsOfTheCard = 12
 
-      const card = {
+      const newCardCreated = {
         id: newCard.id,
         type: newCard.type,
         number: newCard.number.substring(startingPositionOfTheLastFourDigitsOfTheCard),
@@ -45,11 +45,12 @@ export class CreateCardUseCase {
         updatedAt: newCard.updatedAt,
       }
 
-      return card
-    } catch (error: any) {
+      return newCardCreated
+    } catch (error) {
       if (error instanceof AppError) throw error
       throw new InternalServerError(
-        error?.message || 'Error in the process of creating a person.',
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (error as any)?.message || 'Error in the process of creating a card.',
       )
     }
   }

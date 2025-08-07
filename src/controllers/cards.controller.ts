@@ -1,5 +1,5 @@
 import type { NextFunction, Request, Response } from 'express'
-import { ListOfCardsUseCase } from '../use-cases/listOfCards'
+import type { ListOfCardsUseCase } from '../use-cases/listOfCards'
 import { HttpStatusCode } from 'axios'
 
 export class CardsController {

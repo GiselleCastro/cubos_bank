@@ -33,8 +33,10 @@ export class LoginUseCase {
       return tokenBearer
     } catch (error) {
       if (error instanceof AppError) throw error
-
-      throw new InternalServerError('Error in the process of login.')
+      throw new InternalServerError(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (error as any)?.message || 'Error in the process of login.',
+      )
     }
   }
 

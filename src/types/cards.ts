@@ -1,7 +1,7 @@
 import { z } from 'zod'
-import { createCardBodySchema } from '../schema/account'
+import { createCardBodySchema } from '../schema/accounts'
 
-import { listOfCardsBodySchema } from '../schema/card'
+import { listOfCardsBodySchema } from '../schema/cards'
 
 export type CreateCardData = z.infer<typeof createCardBodySchema>
 

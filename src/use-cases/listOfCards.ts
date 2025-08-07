@@ -1,6 +1,6 @@
 import type { CardsRepository } from '../repositories/cards'
 import { AppError, InternalServerError } from '../err/appError'
-import { CreateCardReturnPagination, PaginationByUser } from '../types/cards'
+import type { CreateCardReturnPagination, PaginationByUser } from '../types/cards'
 
 export class ListOfCardsUseCase {
   constructor(private readonly cardsRepository: CardsRepository) {}
@@ -29,10 +29,11 @@ export class ListOfCardsUseCase {
       }
 
       return { cards: listOfCardsWithLastFourDigitsOfTheCardNumber, pagination }
-    } catch (error: any) {
+    } catch (error) {
       if (error instanceof AppError) throw error
       throw new InternalServerError(
-        error?.message || 'Error in the process of creating a person.',
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (error as any)?.message || 'Error listing all cards.',
       )
     }
   }

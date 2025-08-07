@@ -1,7 +1,8 @@
 import { Router } from 'express'
-import { TransactionsControllerFactory } from '../controllers/factories/transactions.controller.factory'
 import { AuthMiddleware } from '../middlewares/authentication'
 import { ValidateSchemaMiddleware } from '../middlewares/schemaValidation'
+import { TransactionsControllerFactory } from '../controllers/factories/transactions.controller.factory'
+
 export const router = Router()
 
 const controller = TransactionsControllerFactory.make()

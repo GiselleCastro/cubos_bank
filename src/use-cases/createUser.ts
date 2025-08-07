@@ -2,8 +2,8 @@ import type { UsersRepository } from '../repositories/users'
 import type { CreateUserPayload, CreateUserReturn } from '../types/users.js'
 import { v4 as uuid } from 'uuid'
 import { genSalt, hash } from 'bcrypt'
-import { CompilanceAPI } from '../infrastructure/compilanceAPI'
-import { ValidationDocumentType } from '../infrastructure/compilanceAPI'
+import type { CompilanceAPI } from '../infrastructure/compilanceAPI'
+import type { ValidationDocumentType } from '../types/users.js'
 import {
   AppError,
   BadRequestError,
@@ -59,18 +59,19 @@ export class CreateUserUseCase {
         name: data.name,
         document: data.document,
       })
-      const userData = {
+      const userDataCreated = {
         id: newUser.id,
         name: newUser.name,
         document: newUser.document,
         createdAt: newUser.createdAt,
         updatedAt: newUser.updatedAt,
       }
-      return userData
-    } catch (error: any) {
+      return userDataCreated
+    } catch (error) {
       if (error instanceof AppError) throw error
       throw new InternalServerError(
-        error?.message || 'Error in the process of creating a person.',
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (error as any)?.message || 'Error in the process of creating a person.',
       )
     }
   }

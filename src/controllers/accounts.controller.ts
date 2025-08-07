@@ -2,8 +2,9 @@ import type { NextFunction, Request, Response } from 'express'
 import type { CreateAccountUseCase } from '../use-cases/createAccount'
 import type { ListOfAccountsUseCase } from '../use-cases/listOfAccounts'
 import type { CreateCardUseCase } from '../use-cases/createCard'
+import type { CheckBalanceUseCase } from '../use-cases/checkBalance'
+import type { ListOfCardsByAccountUseCase } from '../use-cases/listOfCardsByAccount'
 import { HttpStatusCode } from 'axios'
-import { CheckBalanceUseCase } from '../use-cases/checkBalance'
 
 export class AccountsController {
   constructor(
@@ -11,6 +12,7 @@ export class AccountsController {
     private readonly listOfAccountsUseCase: ListOfAccountsUseCase,
     private readonly createCardUseCase: CreateCardUseCase,
     private readonly checkBalanceUseCase: CheckBalanceUseCase,
+    private readonly listOfCardsByAccountUseCase: ListOfCardsByAccountUseCase,
   ) {}
 
   createAccount() {
@@ -43,6 +45,18 @@ export class AccountsController {
         const accountId = req.params.accountId as string
         const result = await this.createCardUseCase.execute(req.body, accountId)
         return res.status(HttpStatusCode.Created).json(result)
+      } catch (error) {
+        next(error)
+      }
+    }
+  }
+
+  listOfCardsByAccount() {
+    return async (req: Request, res: Response, next: NextFunction) => {
+      try {
+        const accountId = req.params.accountId as string
+        const result = await this.listOfCardsByAccountUseCase.execute(accountId)
+        return res.status(HttpStatusCode.Ok).json(result)
       } catch (error) {
         next(error)
       }

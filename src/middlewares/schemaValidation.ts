@@ -1,6 +1,7 @@
 import type { Request, Response, NextFunction } from 'express'
-import { HttpStatusCode } from 'axios'
 import type { ZodObject } from 'zod'
+import { ZodError } from 'zod'
+import { UnprocessableEntityError } from '../err/appError'
 
 export enum Params {
   BODY = 'body',
@@ -15,10 +16,9 @@ export class ValidateSchemaMiddleware {
       try {
         await schema.parseAsync(req[param])
         next()
-      } catch (err: any) {
-        res.status(HttpStatusCode.UnprocessableEntity).json({
-          details: err.issues,
-        })
+      } catch (error) {
+        if (error instanceof ZodError)
+          next(new UnprocessableEntityError(JSON.stringify(error.issues)))
       }
     }
   }

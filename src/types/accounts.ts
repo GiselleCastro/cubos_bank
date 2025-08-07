@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { createAccountBodySchema } from '../schema/account'
+import { createAccountBodySchema } from '../schema/accounts'
 
 export type CreateAccountData = z.infer<typeof createAccountBodySchema>
 

@@ -1,9 +1,8 @@
 import type { Request, Response, NextFunction } from 'express'
-import { HttpStatusCode } from 'axios'
 import jwt, { JwtPayload } from 'jsonwebtoken'
 import { env } from '../config/env'
-import { TokenDecode } from '../types/users'
-
+import type { TokenDecode } from '../types/users'
+import { UnauthorizedError } from '../err/appError'
 interface AuthenticatedRequest extends Request {
   user?: string | JwtPayload
 }
@@ -14,13 +13,13 @@ export class AuthMiddleware {
       const authHeader = req.headers.authorization
 
       if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return res.status(HttpStatusCode.Unauthorized).json({ error: 'No token.' })
+        throw new UnauthorizedError('No token.')
       }
 
       const token = authHeader.split(' ')[1]
 
       if (!token) {
-        return res.status(HttpStatusCode.Unauthorized).json({ error: 'No token.' })
+        throw new UnauthorizedError('No token.')
       }
 
       try {
@@ -28,7 +27,7 @@ export class AuthMiddleware {
         req.headers.authorization = decoded.id
         next()
       } catch {
-        return res.status(HttpStatusCode.Unauthorized).json({ error: 'Token invalid.' })
+        throw new UnauthorizedError('Token invalid.')
       }
     }
   }
