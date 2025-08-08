@@ -1,5 +1,5 @@
 import type { TransactionsRepository } from '../repositories/transactions'
-import { AppError, InternalServerError } from '../err/appError'
+import { AppError, ForbiddenError, InternalServerError } from '../err/appError'
 import type {
   PaginationByTransaction,
   TransactionsReturnPagination,
@@ -8,17 +8,29 @@ import {
   convertAbsoluteAmountToAmount,
   convertCentsToReais,
 } from '../utils/moneyConverter'
+import type { AccountsRepository } from '../repositories/accounts'
 
 export class ListOfAllTransactionsUseCase {
-  constructor(private readonly transactionsRepository: TransactionsRepository) {}
+  constructor(
+    private readonly transactionsRepository: TransactionsRepository,
+    private readonly accountsRepository: AccountsRepository,
+  ) {}
 
   async execute({
     accountId,
+    userId,
     itemsPerPage = 10,
     currentPage = 1,
     type,
   }: PaginationByTransaction): Promise<TransactionsReturnPagination> {
     try {
+      const registeredAccount = await this.accountsRepository.findByAccountId(accountId)
+      if (!registeredAccount || registeredAccount.userId !== userId) {
+        throw new ForbiddenError(
+          'Access denied. This account does not belong to the authenticated user.',
+        )
+      }
+
       const skip = (currentPage - 1) * itemsPerPage
       const take = itemsPerPage
 

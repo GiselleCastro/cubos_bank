@@ -27,6 +27,7 @@ export type RevertTransaction = CreateTransaction & {
 
 export type PaginationByTransaction = z.infer<typeof transactionPaginationSchema> & {
   accountId: string
+  userId: string
 }
 
 export type TransactionsReturnPagination = {

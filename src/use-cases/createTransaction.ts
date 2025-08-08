@@ -1,7 +1,7 @@
 import type { TransactionsRepository } from '../repositories/transactions'
 import {
   AppError,
-  BadRequestError,
+  ForbiddenError,
   InternalServerError,
   PaymentRequiredError,
 } from '../err/appError'
@@ -28,8 +28,10 @@ export class CreateTransactionUseCase {
     try {
       const registeredAccount = await this.accountsRepository.findByAccountId(accountId)
 
-      if (!registeredAccount) {
-        throw new BadRequestError('Non-existent account.')
+      if (!registeredAccount || registeredAccount.userId !== userId) {
+        throw new ForbiddenError(
+          'Access denied. This account does not belong to the authenticated user.',
+        )
       }
 
       const transactionType =

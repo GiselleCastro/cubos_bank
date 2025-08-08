@@ -35,9 +35,11 @@ export class TransactionsController {
     return async (req: Request, res: Response, next: NextFunction) => {
       try {
         const accountId = req.params.accountId as string
+        const userId = req.headers.authorization as string
         const result = await this.createInternalTransferUseCase.execute(
           req.body,
           accountId,
+          userId,
         )
         return res.status(HttpStatusCode.Created).json(result)
       } catch (error) {
@@ -51,9 +53,11 @@ export class TransactionsController {
       try {
         const accountId = req.params.accountId as string
         const transactionId = req.params.transactionId as string
+        const userId = req.headers.authorization as string
         const result = await this.reverseTransactionUseCase.execute(
           accountId,
           transactionId,
+          userId,
         )
         return res.status(HttpStatusCode.Ok).json(result)
       } catch (error) {
@@ -65,12 +69,14 @@ export class TransactionsController {
   listOfAllTransactions() {
     return async (req: Request, res: Response, next: NextFunction) => {
       try {
+        const userId = req.headers.authorization as string
         const accountId = req.params.accountId as string
         const itemsPerPage = req.query?.itemsPerPage
         const currentPage = req.query?.currentPage
         const type = req.query?.type
         const args = {
           accountId,
+          userId,
           ...(itemsPerPage && { itemsPerPage: +itemsPerPage }),
           ...(currentPage && { currentPage: +currentPage }),
           ...(type && { type: type as TransactionType }),

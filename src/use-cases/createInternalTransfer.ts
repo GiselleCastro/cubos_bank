@@ -2,6 +2,7 @@ import type { TransactionsRepository } from '../repositories/transactions'
 import {
   AppError,
   BadRequestError,
+  ForbiddenError,
   InternalServerError,
   PaymentRequiredError,
 } from '../err/appError'
@@ -17,12 +18,15 @@ export class CreateInternalTransferUseCase {
     private readonly transactionsRepository: TransactionsRepository,
   ) {}
 
-  async execute(data: CreateInternalTransferData, accountId: string) {
+  async execute(data: CreateInternalTransferData, accountId: string, userId: string) {
     try {
       const registeredAccountOwner =
         await this.accountsRepository.findByAccountId(accountId)
-      if (!registeredAccountOwner) {
-        throw new BadRequestError('Non-existent account for owner.')
+
+      if (!registeredAccountOwner || registeredAccountOwner.userId !== userId) {
+        throw new ForbiddenError(
+          'Access denied. This account does not belong to the authenticated user.',
+        )
       }
 
       const registeredAccountReceiver = await this.accountsRepository.findByAccountId(

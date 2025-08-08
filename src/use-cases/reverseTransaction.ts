@@ -3,6 +3,7 @@ import {
   AppError,
   BadRequestError,
   ConflictError,
+  ForbiddenError,
   InternalServerError,
   PaymentRequiredError,
 } from '../err/appError'
@@ -19,8 +20,16 @@ export class ReverseTransactionUseCase {
     private readonly accountsRepository: AccountsRepository,
     private readonly transactionsRepository: TransactionsRepository,
   ) {}
-  async execute(accountId: string, transactionId: string) {
+  async execute(accountId: string, transactionId: string, userId: string) {
     try {
+      const registeredAccount = await this.accountsRepository.findByAccountId(accountId)
+
+      if (!registeredAccount || registeredAccount.userId !== userId) {
+        throw new ForbiddenError(
+          'Access denied. This account does not belong to the authenticated user.',
+        )
+      }
+
       const registeredTransaction =
         await this.transactionsRepository.findByAccountIdAndtransactionId(
           accountId,
@@ -33,12 +42,6 @@ export class ReverseTransactionUseCase {
 
       if (registeredTransaction.isReverted) {
         throw new ConflictError('Transaction already reverted.')
-      }
-
-      const registeredAccount = await this.accountsRepository.findByAccountId(accountId)
-
-      if (!registeredAccount) {
-        throw new BadRequestError('Non-existent account.')
       }
 
       const revertedTransactionType =
