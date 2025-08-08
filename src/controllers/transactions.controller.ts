@@ -24,8 +24,6 @@ export class TransactionsController {
           userId,
           accountId,
         )
-        if ('statusCode' in result) return res.status(result.statusCode).json(result)
-
         return res.status(HttpStatusCode.Created).json(result)
       } catch (error) {
         next(error)

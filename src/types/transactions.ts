@@ -15,14 +15,27 @@ export type CreateTransactionReturn = CreateTransactionData & {
   updatedAt: Date
 }
 
-export type TransactionInProcessing = {
-  statusCode: number
-  message: string
-}
-
 export type CreateTransactionCompilanceAPI = {
   description: string
   externalId: string
+}
+
+export type TransactionCompilanceAPI = {
+  id: string
+  externalId: string
+  description: string
+  userId: string
+  status: TransactionStatus
+}
+
+export type TransactionCompilanceAPIResponse = {
+  success: boolean
+  data: TransactionCompilanceAPI
+}
+
+export type ListTransactionCompilanceAPIResponse = {
+  success: boolean
+  data: TransactionCompilanceAPI[]
 }
 
 export type CreateTransaction = CreateTransactionData & {

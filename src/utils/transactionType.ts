@@ -5,5 +5,5 @@ export const invertTransactionType = (type: TransactionType): TransactionType =>
 }
 
 export const inferTransactionType = (value: number): TransactionType => {
-  return value > 0 ? TransactionType.credit : TransactionType.debit
+  return value >= 0 ? TransactionType.credit : TransactionType.debit
 }

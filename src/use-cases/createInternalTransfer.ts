@@ -9,14 +9,16 @@ import {
 import type { CreateInternalTransferData } from '../types/transactions'
 import { v4 as uuid } from 'uuid'
 import { TransactionStatus, TransactionType } from '@prisma/client'
-import { AccountsRepository } from '../repositories/accounts'
+import type { AccountsRepository } from '../repositories/accounts'
 import { convertReaisToCents } from '../utils/moneyConverter'
 import { inferTransactionType, invertTransactionType } from '../utils/transactionType'
+import { CheckTransactionsService } from '../service/checkTransactions'
 
 export class CreateInternalTransferUseCase {
   constructor(
     private readonly accountsRepository: AccountsRepository,
     private readonly transactionsRepository: TransactionsRepository,
+    private readonly checkTransactionsService: CheckTransactionsService,
   ) {}
 
   async execute(
@@ -53,27 +55,46 @@ export class CreateInternalTransferUseCase {
         convertReaisToCents(data.value),
       )
 
+      await Promise.allSettled([
+        this.checkTransactionsService.execute(
+          accountIdAccountOwner,
+          registeredAccountOwner.userId,
+        ),
+        this.checkTransactionsService.execute(
+          receiverAccountId,
+          registeredAccountReceiver.userId,
+        ),
+      ])
+
+      const [updatedRegisteredAccountOwner, updatedRegisteredAccountReceiver] =
+        await Promise.all([
+          this.accountsRepository.findByAccountId(accountIdAccountOwner),
+          this.accountsRepository.findByAccountId(receiverAccountId),
+        ])
+
       let balanceCurrentOwner: number
       let balanceCurrentReceiver: number
 
       if (transactionType === TransactionType.debit) {
         balanceCurrentOwner =
-          registeredAccountOwner.balance - absoluteAmountInCentsOfTheTransaction
+          updatedRegisteredAccountOwner!.balance - absoluteAmountInCentsOfTheTransaction
         if (balanceCurrentOwner < 0) {
           throw new PaymentRequiredError("Insufficient balance in the owner's account.")
         }
         balanceCurrentReceiver =
-          registeredAccountReceiver.balance + absoluteAmountInCentsOfTheTransaction
+          updatedRegisteredAccountReceiver!.balance +
+          absoluteAmountInCentsOfTheTransaction
       } else {
         balanceCurrentReceiver =
-          registeredAccountReceiver.balance - absoluteAmountInCentsOfTheTransaction
+          updatedRegisteredAccountReceiver!.balance -
+          absoluteAmountInCentsOfTheTransaction
         if (balanceCurrentReceiver < 0) {
           throw new PaymentRequiredError(
             "Insufficient balance in the receiver's account.",
           )
         }
         balanceCurrentOwner =
-          registeredAccountOwner.balance + absoluteAmountInCentsOfTheTransaction
+          updatedRegisteredAccountOwner!.balance + absoluteAmountInCentsOfTheTransaction
       }
 
       const relatedTransactionId = uuid()

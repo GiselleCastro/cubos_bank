@@ -9,11 +9,12 @@ import {
   convertCentsToReais,
 } from '../utils/moneyConverter'
 import type { AccountsRepository } from '../repositories/accounts'
-
+import type { CheckTransactionsService } from '../service/checkTransactions'
 export class ListOfAllTransactionsUseCase {
   constructor(
     private readonly transactionsRepository: TransactionsRepository,
     private readonly accountsRepository: AccountsRepository,
+    private readonly checkTransactionsService: CheckTransactionsService,
   ) {}
 
   async execute({
@@ -30,6 +31,8 @@ export class ListOfAllTransactionsUseCase {
           'Access denied. This account does not belong to the authenticated user.',
         )
       }
+
+      await this.checkTransactionsService.execute(accountId, userId)
 
       const skip = (currentPage - 1) * itemsPerPage
       const take = itemsPerPage

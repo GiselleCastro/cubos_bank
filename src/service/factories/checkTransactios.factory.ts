@@ -1,20 +1,14 @@
-import { ReverseTransactionUseCase } from '../reverseTransaction'
+import { CheckTransactionsService } from '../checkTransactions'
 import { TransactionsRepositoryFactory } from '../../repositories/factories/transactions.factory'
 import { AccountsRepositoryFactory } from '../../repositories/factories/accounts.factory'
 import { CompilanceAPIFactory } from '../../infrastructure/factories/compilanceAPI.factory'
-import { CheckTransactionsServiceFactory } from '../../service/factories/checkTransactios.factory'
 
-export class ReverseTransactionUseCaseFactory {
-  static make(): ReverseTransactionUseCase {
+export class CheckTransactionsServiceFactory {
+  static make(): CheckTransactionsService {
     const transactions = TransactionsRepositoryFactory.make()
     const accounts = AccountsRepositoryFactory.make()
     const compilanceAPI = CompilanceAPIFactory.make()
-    const checkTransaction = CheckTransactionsServiceFactory.make()
-    return new ReverseTransactionUseCase(
-      accounts,
-      transactions,
-      compilanceAPI,
-      checkTransaction,
-    )
+
+    return new CheckTransactionsService(transactions, accounts, compilanceAPI)
   }
 }

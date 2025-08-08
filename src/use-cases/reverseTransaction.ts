@@ -8,26 +8,23 @@ import {
   PaymentRequiredError,
 } from '../err/appError'
 import { v4 as uuid } from 'uuid'
-import {
-  Accounts,
-  Transactions,
-  TransactionStatus,
-  TransactionType,
-} from '@prisma/client'
+import { Transactions, TransactionStatus, TransactionType } from '@prisma/client'
 import type { AccountsRepository } from '../repositories/accounts'
 import {
   convertAbsoluteAmountToAmount,
   convertCentsToReais,
 } from '../utils/moneyConverter'
 import { invertTransactionType } from '../utils/transactionType'
-import { CompilanceAPI } from '../infrastructure/compilanceAPI'
+import type { CompilanceAPI } from '../infrastructure/compilanceAPI'
 import { pollingTransactionStatus } from '../utils/pollingTransactionStatus'
+import type { CheckTransactionsService } from '../service/checkTransactions'
 
 export class ReverseTransactionUseCase {
   constructor(
     private readonly accountsRepository: AccountsRepository,
     private readonly transactionsRepository: TransactionsRepository,
     private readonly compilanceAPI: CompilanceAPI,
+    private readonly checkTransactionsService: CheckTransactionsService,
   ) {}
   async execute(accountId: string, transactionId: string, userId: string) {
     try {
@@ -55,23 +52,26 @@ export class ReverseTransactionUseCase {
 
       let registerRevertedTransaction
 
-      const { relatedTransactionId, value } = registeredTransaction
+      const { relatedTransactionId } = registeredTransaction
+
       if (relatedTransactionId) {
         registerRevertedTransaction = await this.reverseInternal(
           relatedTransactionId,
           accountId,
-          registeredAccount,
+          userId,
         )
       } else {
         registerRevertedTransaction = await this.reverse(
-          registeredAccount,
           registeredTransaction,
           accountId,
+          userId,
         )
       }
 
-      const absoluteAmountRefunded = convertCentsToReais(value)
-      /// ver value
+      const absoluteAmountRefunded = convertCentsToReais(
+        registerRevertedTransaction.value,
+      )
+
       const registeredRevertedTransaction = {
         id: registerRevertedTransaction.id,
         value: convertAbsoluteAmountToAmount(
@@ -93,43 +93,47 @@ export class ReverseTransactionUseCase {
   }
 
   private async reverse(
-    registeredAccount: Accounts,
     registeredTransaction: Transactions,
     accountId: string,
+    userId: string,
   ) {
-    const { status, empontentId } = registeredTransaction
+    const { empontentId } = registeredTransaction
 
     if (!empontentId)
       throw new BadRequestError('There is no registered empontentId for the transaction.')
 
-    if (status !== TransactionStatus.authorized) {
-      const { data } = await this.compilanceAPI.getTransactionById(empontentId)
+    await this.checkTransactionsService.execute(accountId, userId)
 
-      const statusUpdated = data.status
+    const updatedRegisteredTransaction = await this.transactionsRepository.findById(
+      registeredTransaction.id,
+    )
 
-      if (statusUpdated !== TransactionStatus.authorized)
-        throw new ConflictError(
-          'Transaction is not authorized or has not been completed and cannot be reverted.',
-        )
+    if (updatedRegisteredTransaction!.status !== TransactionStatus.authorized) {
+      throw new ConflictError('Unable to reverse transaction as it was not processed.')
     }
 
-    const revertedTransactionType = invertTransactionType(registeredTransaction.type)
+    const revertedTransactionType = invertTransactionType(
+      updatedRegisteredTransaction!.type,
+    )
 
-    const value =
-      revertedTransactionType === TransactionType.debit
-        ? -registeredTransaction.value
-        : registeredTransaction.value
+    const value = convertAbsoluteAmountToAmount(
+      updatedRegisteredTransaction!.value,
+      revertedTransactionType,
+    )
 
-    const balanceCurrent = registeredAccount.balance + value
+    const updatedRegisteredAccount =
+      await this.accountsRepository.findByAccountId(accountId)
 
-    if (balanceCurrent < 0) {
+    const balanceUpdated = updatedRegisteredAccount!.balance + value
+
+    if (balanceUpdated < 0) {
       throw new PaymentRequiredError('Insufficient balance.')
     }
 
     const newTransactionId = uuid()
 
     await this.compilanceAPI.createTransaction(empontentId, {
-      description: registeredTransaction.description,
+      description: updatedRegisteredTransaction!.description,
       externalId: newTransactionId,
     })
 
@@ -140,22 +144,23 @@ export class ReverseTransactionUseCase {
     const registerRevertedTransaction = await this.transactionsRepository.revert(
       {
         id: newTransactionId,
-        value: registeredTransaction.value,
+        value: updatedRegisteredTransaction!.value,
         type: revertedTransactionType,
-        description: registeredTransaction.description,
-              accountId,
-        reversedById: registeredTransaction.id,
+        description: updatedRegisteredTransaction!.description,
+        accountId,
+        reversedById: updatedRegisteredTransaction!.id,
         status: statusTransaction,
       },
-      balanceCurrent,
+      statusTransaction === TransactionStatus.authorized ? balanceUpdated : null,
     )
+
     return registerRevertedTransaction
   }
 
   private async reverseInternal(
     relatedTransactionId: string,
     ownerAccountId: string,
-    registeredAccountOwner: Accounts,
+    ownerUserId: string,
   ) {
     const listOfTransactionsToReverse =
       await this.transactionsRepository.findByRelatedTransactionId(relatedTransactionId)
@@ -165,9 +170,11 @@ export class ReverseTransactionUseCase {
         'Internal transactions related to this transaction not found.',
       )
     }
+
     const transactionAccountOwner = listOfTransactionsToReverse.find(
       (i) => i.accountId === ownerAccountId,
     )
+
     const transactionAccountReceiver = listOfTransactionsToReverse.find(
       (i) => i.accountId !== ownerAccountId,
     )
@@ -176,20 +183,34 @@ export class ReverseTransactionUseCase {
       throw new BadRequestError("The owner's account is not related to this transaction.")
     }
 
-    const registeredAccountReceiver = (await this.accountsRepository.findByAccountId(
+    const registeredAccountReceiver = await this.accountsRepository.findByAccountId(
       transactionAccountReceiver.accountId,
-    )) as Accounts
+    )
+
+    await Promise.allSettled([
+      this.checkTransactionsService.execute(ownerAccountId, ownerUserId),
+      this.checkTransactionsService.execute(
+        transactionAccountReceiver.accountId,
+        registeredAccountReceiver!.userId,
+      ),
+    ])
+
+    const [updatedRegisteredAccountOwner, updatedRegisteredAccountReceiver] =
+      await Promise.all([
+        this.accountsRepository.findByAccountId(ownerAccountId),
+        this.accountsRepository.findByAccountId(transactionAccountReceiver.accountId),
+      ])
 
     const isDebit = transactionAccountOwner.type === TransactionType.debit
     const value = transactionAccountOwner.value
 
     const balanceCurrentOwner = isDebit
-      ? registeredAccountOwner.balance - value
-      : registeredAccountOwner.balance + value
+      ? updatedRegisteredAccountOwner!.balance - value
+      : updatedRegisteredAccountOwner!.balance + value
 
     const balanceCurrentReceiver = isDebit
-      ? registeredAccountReceiver.balance + value
-      : registeredAccountReceiver.balance - value
+      ? updatedRegisteredAccountReceiver!.balance + value
+      : updatedRegisteredAccountReceiver!.balance - value
 
     if (balanceCurrentOwner < 0) {
       throw new PaymentRequiredError("Insufficient balance in the owner's account.")

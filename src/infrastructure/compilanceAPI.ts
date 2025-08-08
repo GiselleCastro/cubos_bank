@@ -3,7 +3,11 @@ import type { AxiosInstance } from 'axios'
 import { HttpStatusCode, AxiosError } from 'axios'
 import { AppError, InternalServerError, UnauthorizedError } from '../err/appError'
 import type { ValidationDocumentType } from '../types/users'
-import { CreateTransactionCompilanceAPI } from '../types/transactions'
+import type {
+  CreateTransactionCompilanceAPI,
+  ListTransactionCompilanceAPIResponse,
+  TransactionCompilanceAPIResponse,
+} from '../types/transactions'
 
 export class CompilanceAPI extends RestClient {
   private authCode: string | null = null
@@ -176,7 +180,10 @@ export class CompilanceAPI extends RestClient {
     }
   }
 
-  async createTransaction(id: string, data: CreateTransactionCompilanceAPI) {
+  async createTransaction(
+    id: string,
+    data: CreateTransactionCompilanceAPI,
+  ): Promise<TransactionCompilanceAPIResponse> {
     const headers = await this.getHeaders()
     try {
       const response = await this.put(`/transaction/${id}`, data, headers)
@@ -188,7 +195,7 @@ export class CompilanceAPI extends RestClient {
     }
   }
 
-  async getTransactionById(id: string) {
+  async getTransactionById(id: string): Promise<TransactionCompilanceAPIResponse> {
     const headers = await this.getHeaders()
 
     try {
@@ -201,7 +208,7 @@ export class CompilanceAPI extends RestClient {
     }
   }
 
-  async getAllTransaction() {
+  async getAllTransaction(): Promise<ListTransactionCompilanceAPIResponse> {
     const headers = await this.getHeaders()
     try {
       const response = await this.get(`/transaction`, {}, headers)

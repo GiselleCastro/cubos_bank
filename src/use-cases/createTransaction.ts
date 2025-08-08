@@ -9,28 +9,28 @@ import { v4 as uuid } from 'uuid'
 import type {
   CreateTransactionData,
   CreateTransactionReturn,
-  TransactionInProcessing,
 } from '../types/transactions'
 import { TransactionStatus, TransactionType } from '@prisma/client'
-import { AccountsRepository } from '../repositories/accounts'
+import type { AccountsRepository } from '../repositories/accounts'
 import { convertReaisToCents } from '../utils/moneyConverter'
 import { inferTransactionType } from '../utils/transactionType'
-import { CompilanceAPI } from '../infrastructure/compilanceAPI'
+import type { CompilanceAPI } from '../infrastructure/compilanceAPI'
 import { pollingTransactionStatus } from '../utils/pollingTransactionStatus'
-import { HttpStatusCode } from 'axios'
+import type { CheckTransactionsService } from '../service/checkTransactions'
 
 export class CreateTransactionUseCase {
   constructor(
     private readonly accountsRepository: AccountsRepository,
     private readonly transactionsRepository: TransactionsRepository,
     private readonly compilanceAPI: CompilanceAPI,
+    private readonly checkTransactionsService: CheckTransactionsService,
   ) {}
 
   async execute(
     data: CreateTransactionData,
     userId: string,
     accountId: string,
-  ): Promise<CreateTransactionReturn | TransactionInProcessing> {
+  ): Promise<CreateTransactionReturn> {
     try {
       const registeredAccount = await this.accountsRepository.findByAccountId(accountId)
 
@@ -46,16 +46,23 @@ export class CreateTransactionUseCase {
         convertReaisToCents(data.value),
       )
 
-      let balanceCurrent: number
+      await this.checkTransactionsService.execute(accountId, userId)
+
+      const updateRegisteredAccount =
+        await this.accountsRepository.findByAccountId(accountId)
+
+      let balanceUpdated: number
 
       if (transactionType === TransactionType.debit) {
-        balanceCurrent = registeredAccount.balance - absoluteAmountInCentsOfTheTransaction
+        balanceUpdated =
+          updateRegisteredAccount!.balance - absoluteAmountInCentsOfTheTransaction
 
-        if (balanceCurrent < 0) {
+        if (balanceUpdated < 0) {
           throw new PaymentRequiredError('Insufficient balance.')
         }
       } else {
-        balanceCurrent = registeredAccount.balance + absoluteAmountInCentsOfTheTransaction
+        balanceUpdated =
+          updateRegisteredAccount!.balance + absoluteAmountInCentsOfTheTransaction
       }
 
       const empontentId = uuid()
@@ -81,15 +88,8 @@ export class CreateTransactionUseCase {
           empontentId,
           status,
         },
-        balanceCurrent,
+        status === TransactionStatus.processing ? null : balanceUpdated,
       )
-
-      if (status === TransactionStatus.processing) {
-        return {
-          statusCode: HttpStatusCode.Accepted,
-          message: 'The transaction is processing.',
-        }
-      }
 
       const transactionCreated = {
         id: registeredTransaction.id,

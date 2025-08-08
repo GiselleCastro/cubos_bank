@@ -1,41 +1,51 @@
-import type { PrismaClient, Transactions, TransactionType } from '@prisma/client'
+import {
+  PrismaClient,
+  Transactions,
+  TransactionStatus,
+  TransactionType,
+} from '@prisma/client'
 import type { CreateTransaction, RevertTransaction } from '../types/transactions'
 
 export class TransactionsRepository {
   constructor(private readonly prisma: PrismaClient) {}
 
-  async create(data: CreateTransaction, balance: number): Promise<Transactions> {
-    const [transaction] = await this.prisma.$transaction([
-      this.prisma.transactions.create({ data }),
-      this.prisma.accounts.update({
-        where: { id: data.accountId },
-        data: {
-          balance,
-        },
-      }),
-    ])
-
-    return transaction
+  async create(data: CreateTransaction, balance: number | null): Promise<Transactions> {
+    if (balance !== null) {
+      const [transaction] = await this.prisma.$transaction([
+        this.prisma.transactions.create({ data }),
+        this.prisma.accounts.update({
+          where: { id: data.accountId },
+          data: {
+            balance,
+          },
+        }),
+      ])
+      return transaction
+    }
+    return this.prisma.transactions.create({ data })
   }
 
-  async revert(data: RevertTransaction, balance: number): Promise<Transactions> {
-    const [transaction] = await this.prisma.$transaction([
-      this.prisma.transactions.create({ data }),
-      this.prisma.transactions.update({
-        where: { id: data.reversedById },
-        data: {
-          isReverted: true,
-        },
-      }),
-      this.prisma.accounts.update({
-        where: { id: data.accountId },
-        data: {
-          balance,
-        },
-      }),
-    ])
+  async revert(data: RevertTransaction, balance: number | null): Promise<Transactions> {
+    if (balance !== null) {
+      const [transaction] = await this.prisma.$transaction([
+        this.prisma.transactions.create({ data }),
+        this.prisma.transactions.update({
+          where: { id: data.reversedById },
+          data: {
+            isReverted: true,
+          },
+        }),
+        this.prisma.accounts.update({
+          where: { id: data.accountId },
+          data: {
+            balance,
+          },
+        }),
+      ])
 
-    return transaction
+      return transaction
+    }
+    return this.prisma.transactions.create({ data })
   }
 
   async revertInternal(
@@ -113,6 +123,28 @@ export class TransactionsRepository {
     })
   }
 
+  async findById(transactionId: string) {
+    return this.prisma.transactions.findUnique({
+      where: {
+        id: transactionId,
+      },
+    })
+  }
+
+  async findAllByAccountIdAndNotAuthorizedAndWithEmpontentId(accountId: string) {
+    return this.prisma.transactions.findMany({
+      where: {
+        accountId,
+        status: {
+          not: TransactionStatus.authorized,
+        },
+        empontentId: {
+          not: null,
+        },
+      },
+    })
+  }
+
   async findByRelatedTransactionId(relatedTransactionId: string) {
     return this.prisma.transactions.findMany({
       where: {
@@ -128,5 +160,47 @@ export class TransactionsRepository {
         accountId,
       },
     })
+  }
+
+  async updateStatusAndBalance(
+    accountId: string,
+    transactionId: string,
+    status: TransactionStatus,
+    balance: number,
+    reversedById: string | null,
+  ) {
+    if (!reversedById) {
+      return this.prisma.$transaction([
+        this.prisma.accounts.update({
+          where: { id: accountId },
+          data: { balance },
+        }),
+        this.prisma.transactions.update({
+          where: {
+            id: transactionId,
+          },
+          data: { status },
+        }),
+      ])
+    }
+
+    return this.prisma.$transaction([
+      this.prisma.accounts.update({
+        where: { id: accountId },
+        data: { balance },
+      }),
+      this.prisma.transactions.update({
+        where: {
+          id: transactionId,
+        },
+        data: { status },
+      }),
+      this.prisma.transactions.update({
+        where: { id: reversedById },
+        data: {
+          isReverted: true,
+        },
+      }),
+    ])
   }
 }
