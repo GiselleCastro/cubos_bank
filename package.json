@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
+    "build": "tsc",
     "start": "node ./bin/www",
     "dev": "tsx watch ./src/server.ts",
     "lint": "npx eslint src",
@@ -14,14 +15,9 @@
     "@prisma/client": "^6.13.0",
     "axios": "^1.11.0",
     "bcrypt": "^6.0.0",
-    "cookie-parser": "~1.4.4",
-    "debug": "~2.6.9",
     "dotenv": "^17.2.1",
     "express": "~4.16.1",
-    "http-errors": "~1.6.3",
-    "jade": "~1.11.0",
     "jsonwebtoken": "^9.0.2",
-    "morgan": "~1.9.1",
     "uuid": "^11.1.0",
     "zod": "^4.0.14"
   },

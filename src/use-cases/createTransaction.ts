@@ -4,27 +4,34 @@ import {
   ForbiddenError,
   InternalServerError,
   PaymentRequiredError,
+  RequestTimeoutError,
 } from '../err/appError'
 import { v4 as uuid } from 'uuid'
 import type {
   CreateTransactionData,
   CreateTransactionReturn,
+  TransactionInProcessing,
 } from '../types/transactions'
-import { TransactionType } from '@prisma/client'
+import { TransactionStatus, TransactionType } from '@prisma/client'
 import { AccountsRepository } from '../repositories/accounts'
 import { convertReaisToCents } from '../utils/moneyConverter'
+import { inferTransactionType } from '../utils/transactionType'
+import { CompilanceAPI } from '../infrastructure/compilanceAPI'
+import { wait } from '../utils/wait'
+import { HttpStatusCode } from 'axios'
 
 export class CreateTransactionUseCase {
   constructor(
     private readonly accountsRepository: AccountsRepository,
     private readonly transactionsRepository: TransactionsRepository,
+    private readonly compilanceAPI: CompilanceAPI,
   ) {}
 
   async execute(
     data: CreateTransactionData,
     userId: string,
     accountId: string,
-  ): Promise<CreateTransactionReturn> {
+  ): Promise<CreateTransactionReturn | TransactionInProcessing> {
     try {
       const registeredAccount = await this.accountsRepository.findByAccountId(accountId)
 
@@ -34,8 +41,7 @@ export class CreateTransactionUseCase {
         )
       }
 
-      const transactionType =
-        data.value > 0 ? TransactionType.credit : TransactionType.debit
+      const transactionType = inferTransactionType(data.value)
 
       const absoluteAmountInCentsOfTheTransaction = Math.abs(
         convertReaisToCents(data.value),
@@ -53,16 +59,36 @@ export class CreateTransactionUseCase {
         balanceCurrent = registeredAccount.balance + absoluteAmountInCentsOfTheTransaction
       }
 
+      const empontentId = uuid()
+
+      const transactionId = uuid()
+
+      await this.compilanceAPI.createTransaction(empontentId, {
+        description: data.description,
+        externalId: transactionId,
+      })
+
+      const status = await this.polling(empontentId)
+
       const registeredTransaction = await this.transactionsRepository.create(
         {
-          id: uuid(),
+          id: transactionId,
           value: absoluteAmountInCentsOfTheTransaction,
           type: transactionType,
           description: data.description,
           accountId,
+          empontentId,
+          status
         },
         balanceCurrent,
       )
+
+      if (status === TransactionStatus.processing) {
+        return {
+          statusCode: HttpStatusCode.Accepted,
+          message: 'The transaction is processing.',
+        }
+      }
 
       const transactionCreated = {
         id: registeredTransaction.id,
@@ -80,5 +106,37 @@ export class CreateTransactionUseCase {
         (error as any)?.message || 'Error checking balance.',
       )
     }
+  }
+
+  async polling(empontentId: string): Promise<TransactionStatus> {
+    let retry = 0
+    const maxRetry = 5
+    const milliseconds = 500
+
+    while (retry <= maxRetry) {
+      try {
+        const { data } = await this.compilanceAPI.getTransactionById(empontentId)
+        const { status } = data
+console.log(data)
+        if (status === TransactionStatus.authorized) {
+          return status
+        }
+
+        if (status === TransactionStatus.unauthorized) {
+          throw new PaymentRequiredError('Payment refused by Compilance API.')
+        }
+
+        if (retry === maxRetry && status === TransactionStatus.processing) {
+          return status
+        }
+      } catch (error) {
+        if (retry >= maxRetry || error instanceof PaymentRequiredError) {
+          throw error
+        }
+      }
+      await wait(milliseconds)
+      retry++
+    }
+    throw new RequestTimeoutError('Polling exceeded max retries without definitive status.');
   }
 }

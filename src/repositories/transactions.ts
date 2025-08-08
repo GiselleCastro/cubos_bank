@@ -38,29 +38,63 @@ export class TransactionsRepository {
     return transaction
   }
 
-  async createInternal(
-    data: CreateTransaction,
-    receiverAccountId: string,
+  async revertInternal(
+    transactionOwnerAccount: RevertTransaction,
+    transactionReceiverAccount: RevertTransaction,
     balanceOwner: number,
     balanceReceiver: number,
+    relatedTransactionId: string,
   ): Promise<Transactions> {
-    const [transactionInternal] = await this.prisma.$transaction([
-      this.prisma.transactions.create({ data }),
+    const [transactionInternalOwnerAccount] = await this.prisma.$transaction([
+      this.prisma.transactions.create({ data: transactionOwnerAccount }),
+      this.prisma.transactions.create({ data: transactionReceiverAccount }),
       this.prisma.accounts.update({
-        where: { id: data.accountId },
+        where: { id: transactionOwnerAccount.accountId },
         data: {
           balance: balanceOwner,
         },
       }),
       this.prisma.accounts.update({
-        where: { id: receiverAccountId },
+        where: { id: transactionReceiverAccount.accountId },
+        data: {
+          balance: balanceReceiver,
+        },
+      }),
+      this.prisma.transactions.updateMany({
+        where: { relatedTransactionId },
+        data: {
+          isReverted: true,
+        },
+      }),
+    ])
+
+    return transactionInternalOwnerAccount
+  }
+
+  async createInternal(
+    transactionOwnerAccount: CreateTransaction,
+    transactionReceiverAccount: CreateTransaction,
+    balanceOwner: number,
+    balanceReceiver: number,
+  ): Promise<Transactions> {
+    const [transactionInternalOwnerAccount] = await this.prisma.$transaction([
+      this.prisma.transactions.create({ data: transactionOwnerAccount }),
+      this.prisma.transactions.create({ data: transactionReceiverAccount }),
+      this.prisma.accounts.update({
+        where: { id: transactionOwnerAccount.accountId },
+        data: {
+          balance: balanceOwner,
+        },
+      }),
+      this.prisma.accounts.update({
+        where: { id: transactionReceiverAccount.accountId },
         data: {
           balance: balanceReceiver,
         },
       }),
     ])
 
-    return transactionInternal
+    return transactionInternalOwnerAccount
   }
 
   async findByAccountId(
@@ -76,6 +110,14 @@ export class TransactionsRepository {
       },
       skip,
       take,
+    })
+  }
+
+  async findByRelatedTransactionId(relatedTransactionId: string) {
+    return this.prisma.transactions.findMany({
+      where: {
+        relatedTransactionId,
+      },
     })
   }
 

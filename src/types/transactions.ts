@@ -4,7 +4,7 @@ import {
   createInternalTransferBodySchema,
   transactionPaginationSchema,
 } from '../schema/transactions'
-import { TransactionType } from '@prisma/client'
+import { TransactionStatus, TransactionType } from '@prisma/client'
 import { Pagination } from '.'
 
 export type CreateTransactionData = z.infer<typeof createTransactionBodySchema>
@@ -15,10 +15,23 @@ export type CreateTransactionReturn = CreateTransactionData & {
   updatedAt: Date
 }
 
+export type TransactionInProcessing = {
+  statusCode: number
+  message: string
+}
+
+export type CreateTransactionCompilanceAPI = {
+  description: string
+  externalId: string
+}
+
 export type CreateTransaction = CreateTransactionData & {
   id: string
   accountId: string
   type: TransactionType
+  empontentId: string
+  status: TransactionStatus
+  relatedTransactionId?: string
 }
 
 export type RevertTransaction = CreateTransaction & {

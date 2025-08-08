@@ -11,6 +11,7 @@ import { v4 as uuid } from 'uuid'
 import { TransactionType } from '@prisma/client'
 import { AccountsRepository } from '../repositories/accounts'
 import { convertReaisToCents } from '../utils/moneyConverter'
+import { inferTransactionType, invertTransactionType } from '../utils/transactionType'
 
 export class CreateInternalTransferUseCase {
   constructor(
@@ -18,10 +19,14 @@ export class CreateInternalTransferUseCase {
     private readonly transactionsRepository: TransactionsRepository,
   ) {}
 
-  async execute(data: CreateInternalTransferData, accountId: string, userId: string) {
+  async execute(
+    data: CreateInternalTransferData,
+    accountIdAccountOwner: string,
+    userId: string,
+  ) {
     try {
       const registeredAccountOwner =
-        await this.accountsRepository.findByAccountId(accountId)
+        await this.accountsRepository.findByAccountId(accountIdAccountOwner)
 
       if (!registeredAccountOwner || registeredAccountOwner.userId !== userId) {
         throw new ForbiddenError(
@@ -29,16 +34,20 @@ export class CreateInternalTransferUseCase {
         )
       }
 
-      const registeredAccountReceiver = await this.accountsRepository.findByAccountId(
-        data.receiverAccountId,
-      )
+      const { receiverAccountId } = data
+
+      if (receiverAccountId === accountIdAccountOwner) {
+        throw new BadRequestError('Transfer to the same account is not allowed.')
+      }
+
+      const registeredAccountReceiver =
+        await this.accountsRepository.findByAccountId(receiverAccountId)
 
       if (!registeredAccountReceiver) {
         throw new BadRequestError('Non-existent account for receiver.')
       }
 
-      const transactionType =
-        data.value > 0 ? TransactionType.credit : TransactionType.debit
+      const transactionType = inferTransactionType(data.value)
 
       const absoluteAmountInCentsOfTheTransaction = Math.abs(
         convertReaisToCents(data.value),
@@ -67,15 +76,28 @@ export class CreateInternalTransferUseCase {
           registeredAccountOwner.balance + absoluteAmountInCentsOfTheTransaction
       }
 
+      const relatedTransactionId = uuid()
+
+      const transactionOwnerAccount = {
+        id: uuid(),
+        value: absoluteAmountInCentsOfTheTransaction,
+        type: transactionType,
+        description: data.description,
+        accountId: accountIdAccountOwner,
+        relatedTransactionId,
+      }
+
+      const transactionReceiverAccount = {
+        id: uuid(),
+        value: absoluteAmountInCentsOfTheTransaction,
+        type: invertTransactionType(transactionType),
+        description: data.description,
+        accountId: receiverAccountId,
+        relatedTransactionId,
+      }
       const registeredTransaction = await this.transactionsRepository.createInternal(
-        {
-          id: uuid(),
-          value: absoluteAmountInCentsOfTheTransaction,
-          type: transactionType,
-          description: data.description,
-          accountId,
-        },
-        data.receiverAccountId,
+        transactionOwnerAccount,
+        transactionReceiverAccount,
         balanceCurrentOwner,
         balanceCurrentReceiver,
       )

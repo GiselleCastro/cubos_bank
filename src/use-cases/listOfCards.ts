@@ -16,11 +16,9 @@ export class ListOfCardsUseCase {
 
       const listOfCards = await this.cardsRepository.findByUserId(userId, skip, take)
 
-      const startingPositionOfTheLastFourDigitsOfTheCardNumber = 12
-
       const listOfCardsWithLastFourDigitsOfTheCardNumber = listOfCards.map((i) => ({
         ...i,
-        number: i.number.substring(startingPositionOfTheLastFourDigitsOfTheCardNumber),
+        number: i.number.slice(-4),
       }))
 
       const pagination = {

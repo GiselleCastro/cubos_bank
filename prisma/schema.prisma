@@ -54,16 +54,25 @@ enum TransactionType {
   debit
 }
 
+enum TransactionStatus {
+  processing
+  unauthorized
+  authorized
+}
+
 model Transactions {
-  id           String          @id
-  value        Int
-  description  String
-  type         TransactionType
-  createdAt    DateTime        @default(now())
-  updatedAt    DateTime        @default(now()) @updatedAt
-  accountId    String
-  isReverted   Boolean         @default(false)
-  reversedById String?
+  id                   String             @id
+  value                Int
+  description          String
+  type                 TransactionType
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @default(now()) @updatedAt
+  accountId            String
+  isReverted           Boolean            @default(false)
+  empontentId          String?
+  reversedById         String?
+  relatedTransactionId String?
+  status               TransactionStatus?
 
   account      Accounts       @relation(fields: [accountId], references: [id])
   transaction  Transactions?  @relation("Revert", fields: [reversedById], references: [id])

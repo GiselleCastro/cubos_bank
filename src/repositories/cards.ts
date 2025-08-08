@@ -43,6 +43,9 @@ export class CardsRepository {
           },
         },
       },
+      orderBy: {
+        createdAt: 'desc',
+      },
       skip,
       take,
     })

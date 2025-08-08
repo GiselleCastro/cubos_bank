@@ -68,6 +68,7 @@ GET {{BASE_URL}}/cards
 Authorization: Bearer {{token}}
 ###
 
+##-----
 POST {{BASE_URL}}/accounts/{{accountId}}/transactions
 Content-Type: application/json
 Authorization: Bearer {{token}}
@@ -78,7 +79,7 @@ Authorization: Bearer {{token}}
 }
 ###
 
-GET {{BASE_URL}}/accounts/{{accountId}}/transactions
+GET {{BASE_URL}}/accounts/001534f7-2ead-45a3-9051-cc644dab5f70/transactions
 Authorization: Bearer {{token}}
 ###
 
@@ -87,16 +88,15 @@ Content-Type: application/json
 Authorization: Bearer {{token}}
 
 {
-    "receiverAccountId": "ZodUUID",
+    "receiverAccountId": "001534f7-2ead-45a3-9051-cc644dab5f70",
     "value": 10.01,
     "description": "ZodString"
 }
 ###
 
-@transactionId = edf4eb55-13a5-4b01-9ff6-4a506090cd24
+#@transactionId = edf4eb55-13a5-4b01-9ff6-4a506090cd24
 
-
-POST {{BASE_URL}}/accounts/{{accountId}}/transactions/{{transactionId}}/revert
+POST {{BASE_URL}}/accounts/{{accountId}}/transactions/32d165f6-7193-49d7-8937-05c5d1bff93a/revert
 Authorization: Bearer {{token}}
 ###
 

@@ -3,7 +3,7 @@ import type { CreateTransactionUseCase } from '../use-cases/createTransaction'
 import type { ListOfAllTransactionsUseCase } from '../use-cases/listOfAllTransactions'
 import type { CreateInternalTransferUseCase } from '../use-cases/createInternalTransfer'
 import type { ReverseTransactionUseCase } from '../use-cases/reverseTransaction'
-import type { TransactionType } from '@prisma/client'
+import { TransactionType } from '@prisma/client'
 import { HttpStatusCode } from 'axios'
 
 export class TransactionsController {
@@ -24,6 +24,8 @@ export class TransactionsController {
           userId,
           accountId,
         )
+        if ('statusCode' in result) return res.status(result.statusCode).json(result)
+
         return res.status(HttpStatusCode.Created).json(result)
       } catch (error) {
         next(error)

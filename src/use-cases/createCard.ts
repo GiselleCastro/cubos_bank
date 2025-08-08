@@ -54,12 +54,10 @@ export class CreateCardUseCase {
         accountId,
       })
 
-      const startingPositionOfTheLastFourDigitsOfTheCard = 12
-
       const newCardCreated = {
         id: newCard.id,
         type: newCard.type,
-        number: newCard.number.substring(startingPositionOfTheLastFourDigitsOfTheCard),
+        number: newCard.number.slice(-4),
         cvv: newCard.cvv,
         createdAt: newCard.createdAt,
         updatedAt: newCard.updatedAt,

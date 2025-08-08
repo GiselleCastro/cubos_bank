@@ -3,6 +3,7 @@ import type { AxiosInstance } from 'axios'
 import { HttpStatusCode, AxiosError } from 'axios'
 import { AppError, InternalServerError, UnauthorizedError } from '../err/appError'
 import type { ValidationDocumentType } from '../types/users'
+import { CreateTransactionCompilanceAPI } from '../types/transactions'
 
 export class CompilanceAPI extends RestClient {
   private authCode: string | null = null
@@ -175,10 +176,10 @@ export class CompilanceAPI extends RestClient {
     }
   }
 
-  async createTransaction(id: string) {
+  async createTransaction(id: string, data: CreateTransactionCompilanceAPI) {
     const headers = await this.getHeaders()
     try {
-      const response = await this.put(`/transaction/${id}`, {}, headers)
+      const response = await this.put(`/transaction/${id}`, data, headers)
       return response.data
     } catch (error) {
       if (error instanceof AppError) throw error

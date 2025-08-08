@@ -49,3 +49,9 @@ export class ForbiddenError extends AppError {
     super(message, HttpStatusCode.Forbidden)
   }
 }
+
+export class RequestTimeoutError extends AppError {
+  constructor(message = 'RequestTimeout') {
+    super(message, HttpStatusCode.RequestTimeout)
+  }
+}
