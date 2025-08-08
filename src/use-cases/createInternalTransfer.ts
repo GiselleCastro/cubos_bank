@@ -8,7 +8,7 @@ import {
 } from '../err/appError'
 import type { CreateInternalTransferData } from '../types/transactions'
 import { v4 as uuid } from 'uuid'
-import { TransactionType } from '@prisma/client'
+import { TransactionStatus, TransactionType } from '@prisma/client'
 import { AccountsRepository } from '../repositories/accounts'
 import { convertReaisToCents } from '../utils/moneyConverter'
 import { inferTransactionType, invertTransactionType } from '../utils/transactionType'
@@ -85,6 +85,7 @@ export class CreateInternalTransferUseCase {
         description: data.description,
         accountId: accountIdAccountOwner,
         relatedTransactionId,
+        status: TransactionStatus.authorized,
       }
 
       const transactionReceiverAccount = {
@@ -94,7 +95,9 @@ export class CreateInternalTransferUseCase {
         description: data.description,
         accountId: receiverAccountId,
         relatedTransactionId,
+        status: TransactionStatus.authorized,
       }
+
       const registeredTransaction = await this.transactionsRepository.createInternal(
         transactionOwnerAccount,
         transactionReceiverAccount,

@@ -4,7 +4,6 @@ import {
   ForbiddenError,
   InternalServerError,
   PaymentRequiredError,
-  RequestTimeoutError,
 } from '../err/appError'
 import { v4 as uuid } from 'uuid'
 import type {
@@ -17,7 +16,7 @@ import { AccountsRepository } from '../repositories/accounts'
 import { convertReaisToCents } from '../utils/moneyConverter'
 import { inferTransactionType } from '../utils/transactionType'
 import { CompilanceAPI } from '../infrastructure/compilanceAPI'
-import { wait } from '../utils/wait'
+import { pollingTransactionStatus } from '../utils/pollingTransactionStatus'
 import { HttpStatusCode } from 'axios'
 
 export class CreateTransactionUseCase {
@@ -68,7 +67,9 @@ export class CreateTransactionUseCase {
         externalId: transactionId,
       })
 
-      const status = await this.polling(empontentId)
+      const status = await pollingTransactionStatus(empontentId, () =>
+        this.compilanceAPI.getTransactionById(empontentId),
+      )
 
       const registeredTransaction = await this.transactionsRepository.create(
         {
@@ -78,7 +79,7 @@ export class CreateTransactionUseCase {
           description: data.description,
           accountId,
           empontentId,
-          status
+          status,
         },
         balanceCurrent,
       )
@@ -106,37 +107,5 @@ export class CreateTransactionUseCase {
         (error as any)?.message || 'Error checking balance.',
       )
     }
-  }
-
-  async polling(empontentId: string): Promise<TransactionStatus> {
-    let retry = 0
-    const maxRetry = 5
-    const milliseconds = 500
-
-    while (retry <= maxRetry) {
-      try {
-        const { data } = await this.compilanceAPI.getTransactionById(empontentId)
-        const { status } = data
-console.log(data)
-        if (status === TransactionStatus.authorized) {
-          return status
-        }
-
-        if (status === TransactionStatus.unauthorized) {
-          throw new PaymentRequiredError('Payment refused by Compilance API.')
-        }
-
-        if (retry === maxRetry && status === TransactionStatus.processing) {
-          return status
-        }
-      } catch (error) {
-        if (retry >= maxRetry || error instanceof PaymentRequiredError) {
-          throw error
-        }
-      }
-      await wait(milliseconds)
-      retry++
-    }
-    throw new RequestTimeoutError('Polling exceeded max retries without definitive status.');
   }
 }

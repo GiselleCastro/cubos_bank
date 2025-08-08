@@ -29,8 +29,8 @@ export type CreateTransaction = CreateTransactionData & {
   id: string
   accountId: string
   type: TransactionType
-  empontentId: string
   status: TransactionStatus
+  empontentId?: string
   relatedTransactionId?: string
 }
 
