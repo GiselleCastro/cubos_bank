@@ -1,18 +1,18 @@
 @BASE_URL = http://localhost:4000
 
-
+# @name create_user
 POST {{BASE_URL}}/people
 Content-Type: application/json
 
 {
-    "document": "012.345.678-90",
+    "document": "569.679.155-76",
     "password": "123456",
     "name": "Giselle"
 }
 ###
 
-@document = {{login.request.body.document}}
-@password = {{login.request.body.password}}
+@document = {{create_user.request.body.document}}
+@password = {{create_user.request.body.password}}
 
 
 # @name login
@@ -27,36 +27,77 @@ Content-Type: application/json
 @token = {{login.response.body.token}}
 ###
 
+# @name create_account
 POST {{BASE_URL}}/accounts
 Content-Type: application/json
-Authorization: {{token}}
+Authorization: Bearer {{token}}
 
 {
-    "branch": "011",
-    "account": "2033392-5"
+    "branch": "544",
+    "account": "2034379-5"
 }
 ###
 
-GET {{BASE_URL}}/accounts
-Authorization: {{token}}
-###
+@accountId = 001534f7-2ead-45a3-9051-cc644dab5f70
+#{{create_account.response.body.id}}
 
-@accountId = edf4eb55-13a5-4b01-9ff6-4a506090cd24
+GET {{BASE_URL}}/accounts
+Authorization: Bearer {{token}}
+###
 
 POST {{BASE_URL}}/accounts/{{accountId}}/cards
 Content-Type: application/json
-Authorization: {{token}}
+Authorization: Bearer {{token}}
 
 {
-  "type": "virtual",
-  "number": "5179 7447 8594 6978",
-  "cvv": "512"
+  "type": "physical",
+  "number": "6289 7447 8594 6978",
+  "cvv": "552"
 }
 ###
 
 GET {{BASE_URL}}/accounts/{{accountId}}/cards
-Authorization: {{token}}
-
+Authorization: Bearer {{token}}
 ###
+
 GET {{BASE_URL}}/accounts/{{accountId}}/balance
-Authorization: {{token}}
+Authorization: Bearer {{token}}
+###
+
+GET {{BASE_URL}}/cards
+Authorization: Bearer {{token}}
+###
+
+POST {{BASE_URL}}/accounts/{{accountId}}/transactions
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "value": 10.01,
+  "description": "Teste"
+}
+###
+
+GET {{BASE_URL}}/accounts/{{accountId}}/transactions
+Authorization: Bearer {{token}}
+###
+
+POST {{BASE_URL}}/accounts/{{accountId}}/transactions/internal
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+    "receiverAccountId": "ZodUUID",
+    "value": 10.01,
+    "description": "ZodString"
+}
+###
+
+@transactionId = edf4eb55-13a5-4b01-9ff6-4a506090cd24
+
+
+POST {{BASE_URL}}/accounts/{{accountId}}/transactions/{{transactionId}}/revert
+Authorization: Bearer {{token}}
+###
+
+

@@ -27,7 +27,7 @@ export class LoginUseCase {
       const token = this.generateToken(userFound.id)
 
       const tokenBearer = {
-        token: `Bearer ${token}`,
+        token,
       }
 
       return tokenBearer

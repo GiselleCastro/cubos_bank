@@ -1,13 +1,7 @@
 import { PrismaClient } from '@prisma/client'
 import type { Accounts } from '@prisma/client'
 import type { CreateCardReturn } from '../types/cards'
-
-type CreateAccount = {
-  id: string
-  branch: string
-  account: string
-  userId: string
-}
+import type { CreateAccount, AccountReturn } from '../types/accounts'
 
 export class AccountsRepository {
   constructor(private readonly prisma: PrismaClient) {}
@@ -16,8 +10,17 @@ export class AccountsRepository {
     return this.prisma.accounts.create({ data })
   }
 
-  async findByUserId(userId: string): Promise<Accounts[]> {
-    return this.prisma.accounts.findMany({ where: { userId } })
+  async findByUserId(userId: string): Promise<AccountReturn[]> {
+    return this.prisma.accounts.findMany({
+      select: {
+        id: true,
+        branch: true,
+        account: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+      where: { userId },
+    })
   }
 
   async findByAccountId(accountId: string): Promise<Accounts | null> {

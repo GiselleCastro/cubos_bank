@@ -1,12 +1,12 @@
 import type { AccountsRepository } from '../repositories/accounts'
 import { AppError, BadRequestError, InternalServerError } from '../err/appError'
-import type { CreateAccountData, CreateAccountReturn } from '../types/accounts'
+import type { CreateAccountData, AccountReturn } from '../types/accounts'
 import { v4 as uuid } from 'uuid'
 
 export class CreateAccountUseCase {
   constructor(private readonly accountsRepository: AccountsRepository) {}
 
-  async execute(data: CreateAccountData, userId: string): Promise<CreateAccountReturn> {
+  async execute(data: CreateAccountData, userId: string): Promise<AccountReturn> {
     try {
       const registeredAccount =
         await this.accountsRepository.findByAccountNumberAndBranch(

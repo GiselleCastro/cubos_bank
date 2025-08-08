@@ -3,7 +3,7 @@ import { z } from 'zod'
 export const loginBodySchema = z.object({
   document: z
     .string()
-    .transform((number) => number.replace(/[.\-\s]/g, ''))
+    .transform((number) => number.replace(/[.\-\\/\s]/g, ''))
     .refine((number) => /^\d+$/.test(number), {
       message: 'The document must contain only digits',
     })

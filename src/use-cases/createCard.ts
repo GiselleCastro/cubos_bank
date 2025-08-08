@@ -1,16 +1,36 @@
 import type { CardsRepository } from '../repositories/cards'
-import { AppError, ConflictError, InternalServerError } from '../err/appError'
+import {
+  AppError,
+  ConflictError,
+  ForbiddenError,
+  InternalServerError,
+} from '../err/appError'
 import type { CreateCardData, CreateCardReturn } from '../types/cards'
 import { v4 as uuid } from 'uuid'
 import { CardType } from '@prisma/client'
+import type { AccountsRepository } from '../repositories/accounts'
 
 export class CreateCardUseCase {
-  constructor(private readonly cardsRepository: CardsRepository) {}
+  constructor(
+    private readonly cardsRepository: CardsRepository,
+    private readonly accountsRepository: AccountsRepository,
+  ) {}
 
-  async execute(data: CreateCardData, accountId: string): Promise<CreateCardReturn> {
+  async execute(
+    data: CreateCardData,
+    accountId: string,
+    userId: string,
+  ): Promise<CreateCardReturn> {
     data.number = data.number.replace(/\D/g, '')
 
     try {
+      const registeredAccount = await this.accountsRepository.findByAccountId(accountId)
+      if (registeredAccount?.userId !== userId) {
+        throw new ForbiddenError(
+          'Access denied. This account does not belong to the authenticated user.',
+        )
+      }
+
       if (data.type == CardType.physical) {
         const registeredCard = await this.cardsRepository.findByAccountIdAndType(
           accountId,

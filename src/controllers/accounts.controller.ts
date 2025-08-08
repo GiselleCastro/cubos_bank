@@ -43,7 +43,8 @@ export class AccountsController {
     return async (req: Request, res: Response, next: NextFunction) => {
       try {
         const accountId = req.params.accountId as string
-        const result = await this.createCardUseCase.execute(req.body, accountId)
+        const userId = req.headers.authorization as string
+        const result = await this.createCardUseCase.execute(req.body, accountId, userId)
         return res.status(HttpStatusCode.Created).json(result)
       } catch (error) {
         next(error)
@@ -55,7 +56,8 @@ export class AccountsController {
     return async (req: Request, res: Response, next: NextFunction) => {
       try {
         const accountId = req.params.accountId as string
-        const result = await this.listOfCardsByAccountUseCase.execute(accountId)
+        const userId = req.headers.authorization as string
+        const result = await this.listOfCardsByAccountUseCase.execute(accountId, userId)
         return res.status(HttpStatusCode.Ok).json(result)
       } catch (error) {
         next(error)
@@ -67,7 +69,8 @@ export class AccountsController {
     return async (req: Request, res: Response, next: NextFunction) => {
       try {
         const accountId = req.params.accountId as string
-        const result = await this.checkBalanceUseCase.execute(accountId)
+        const userId = req.headers.authorization as string
+        const result = await this.checkBalanceUseCase.execute(accountId, userId)
         return res.status(HttpStatusCode.Ok).json(result)
       } catch (error) {
         next(error)

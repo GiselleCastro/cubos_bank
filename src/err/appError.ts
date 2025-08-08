@@ -43,3 +43,9 @@ export class PaymentRequiredError extends AppError {
     super(message, HttpStatusCode.PaymentRequired)
   }
 }
+
+export class ForbiddenError extends AppError {
+  constructor(message = 'Forbidden') {
+    super(message, HttpStatusCode.Forbidden)
+  }
+}
