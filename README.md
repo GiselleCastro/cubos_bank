@@ -85,7 +85,7 @@ docker run -p ${PORT}:4000 cubos_bank_api
 
 Para o valor configurado na variável `PORT` é onde a aplicação será executada e estará disponível para acesso `http://localhost:${PORT}`.
 
-**Observação** No Dockerfile.dev a porta do container está configurado para 4000.
+**Observação**: No Dockerfile.dev a porta do container está configurado para 4000.
 
 ## Endpoints da Aplicação
 
@@ -214,25 +214,25 @@ Antes de qualquer operação envolvendo transações, o sistema realiza uma veri
 Para acessar a API de Compliance, é necessário utilizar um token de acesso (`access_token`) em todas as chamadas às rotas privadas.
 
 O processo para obtenção e renovação do `access_token` foi implementado da seguinte forma:
-    - Para obter o token, primeiramente é solicitado um `authCode`.
-    - Com o `authCode`, obtém-se o `access_token` e o `refresh_token`.
-    - Durante o tempo de validade do `access_token`, ele é utilizado para autenticar as requisições à API.
-    - Quando o `access_token` expira, a interceptação via **Axios** detecta respostas de status `401` da API de Compilance e, então, utiliza o `refresh_token` para obter um novo `access_token` sem precisar repetir o processo inicial.
-    - Caso o `refresh_token` também expire (status `401` da API de Compilance), o processo completo de autenticação é reiniciado, solicitando novamente o `authCode` para obter o novo `access_token` e o `refresh_token`.
+- Para obter o token, primeiramente é solicitado um `authCode`.
+- Com o `authCode`, obtém-se o `access_token` e o `refresh_token`.
+- Durante o tempo de validade do `access_token`, ele é utilizado para autenticar as requisições à API.
+- Quando o `access_token` expira, a interceptação via **Axios** detecta respostas de status `401` da API de Compilance e, então, utiliza o `refresh_token` para obter um novo `access_token` sem precisar repetir o processo inicial.
+- Caso o `refresh_token` também expire (status `401` da API de Compilance), o processo completo de autenticação é reiniciado, solicitando novamente o `authCode` para obter o novo `access_token` e o `refresh_token`.
 
 ### Consistência de dados
 Para garantir que o saldo da conta seja atualizado corretamente quando uma transação é autorizada foi utilizada a funcionalidade de *transactions* do Prisma.
 
 Essa abordagem permite que várias transações sejam executadas dentro de uma única operação atômica, de forma a garantir que:
-    - Ou todas as operações relacionadas são concluídas com sucesso;
-    - Ou, em caso de erro em alguma delas, nenhuma alteração é aplicada (*rollback*).
+- Ou todas as operações relacionadas são concluídas com sucesso;
+- Ou, em caso de erro em alguma delas, nenhuma alteração é aplicada (*rollback*).
 
 Dessa forma, a consistência das transações com o saldo é preservada, evitando cenários onde poderia causar inconsistências no saldo.
 
 ### Proteção de Dados Sensíveis
 Considerando que a aplicação lida com dados sensíveis, como senha de login do usuário, número de cartão e CVV, foi adotada a seguinte abordagem para armazenamento seguro:
-    - Senha de login do usuário: armazenada somente na forma de hash.
-    - Dados de cartão: o número do cartão e o CVV são tokenizados e no banco é armazenando um token e um *blob* criptografado que representam os dados do cartão, protegendo as informações contra acessos não autorizados.
+- Senha de login do usuário: armazenada somente na forma de hash.
+- Dados de cartão: o número do cartão e o CVV são tokenizados e no banco é armazenando um token e um *blob* criptografado que representam os dados do cartão, protegendo as informações contra acessos não autorizados.
 
 ### Uso do Design Pattern Factory 
 A utilização do design pattern Factory facilita a criação de instâncias das classes de *services*, *use-cases*, *repositories*, *controllers* e *infrastructures*.
@@ -240,7 +240,6 @@ A utilização do design pattern Factory facilita a criação de instâncias das
 Essa abordagem padroniza a criação dos objetos, facilitando a injeção de dependências e evitando que a configuração dos objetos seja feita manualmente em vários arquivos, o que dificultaria a manutenção do código.
 
 Ao centralizar essa criação em uma *factory* que retorna as instâncias já configuradas, o código fica mais organizado, modular e testável. Isso também facilita a realização de testes unitários, já que as dependências podem ser facilmente mockadas.
-
 
 ## Testes
 ### Testes Unitários
