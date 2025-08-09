@@ -1,5 +1,5 @@
 import { UsersRepository } from '../users'
-import { prisma } from '../../prisma/client.js'
+import { prisma } from '../../prisma/client'
 
 export class UsersRepositoryFactory {
   static make(): UsersRepository {

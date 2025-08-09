@@ -1,9 +1,9 @@
 import type { UsersRepository } from '../repositories/users'
-import type { CreateUserPayload, CreateUserReturn } from '../types/users.js'
+import type { CreateUserPayload, CreateUserReturn } from '../types/users'
 import { v4 as uuid } from 'uuid'
 import { genSalt, hash } from 'bcrypt'
 import type { CompilanceAPI } from '../infrastructures/compilanceAPI'
-import type { ValidationDocumentType } from '../types/users.js'
+import type { ValidationDocumentType } from '../types/users'
 import {
   AppError,
   BadRequestError,

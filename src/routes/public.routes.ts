@@ -1,7 +1,7 @@
 import { Router } from 'express'
-import { ValidateSchemaMiddleware } from '../middlewares/schemaValidation.js'
-import { UsersControllerFactory } from '../controllers/factories/users.controller.factory.js'
-import { createUserBodySchema, loginBodySchema } from '../schema/users.js'
+import { ValidateSchemaMiddleware } from '../middlewares/schemaValidation'
+import { UsersControllerFactory } from '../controllers/factories/users.controller.factory'
+import { createUserBodySchema, loginBodySchema } from '../schema/users'
 
 export const router = Router()
 

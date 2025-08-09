@@ -11,3 +11,7 @@ app.use('/', userRoutes)
 app.use('/accounts', accountRoutes)
 app.use('/cards', cardRoutes)
 app.use(ErrorHandler.handle())
+
+export const buildServer = async () => {
+  return app
+}

@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 import type { Users } from '@prisma/client'
-import type { CreateUser } from '../types/users.js'
+import type { CreateUser } from '../types/users'
 
 export class UsersRepository {
   constructor(private readonly prisma: PrismaClient) {}
