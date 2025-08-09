@@ -6,7 +6,6 @@
 - [Principais Tecnologias Utilizadas](#principais-tecnologias-utilizadas)
 - [Como Iniciar](#como-iniciar)
   - [Pré-requisitos](#pré-requisitos)
-  - [Instalação](#instalação)
   - [Preencher as variáveis de ambiente](#preencher-as-variáveis-de-ambiente)
   - [Instalação de Dependências](#instalação-de-dependências)
   - [Executar as migrations](#executar-as-migrations)
@@ -27,8 +26,6 @@
   - [Testes de Integração](#testes-de-integração)
 
 ## Overview
-
-## Principais Tecnologias Utilizadas
 Este repositório contém a Cubos Bank API.
 
 ## Principais Tecnologias Utilizadas
@@ -56,12 +53,10 @@ Este repositório contém a Cubos Bank API.
 - Node.js (versão >= 22.13)
 - npm (versão >= 10.9.2)
 
-### Instalação
-
 ### Preencher as variáveis de ambiente
 Copie o arquivo de `.env.example` para `.env` e configure as variáveis de ambiente no arquivo `.env`
 
-## Instalação de Dependências
+### Instalação de Dependências
 Para instalar as dependências, execute:
 ```bash
 npm i
@@ -92,11 +87,9 @@ Para o valor configurado na variável `PORT` é onde a aplicação será executa
 
 **Observação** No Dockerfile.dev a porta do container está configurado para 4000.
 
-## Endpoins da Aplicação
+## Endpoints da Aplicação
 
-### Endpoints
-
-#### Usuários
+### Usuários
 - **POST** `/people` — Criar usuário
     - O usuário envia:
         - document (documento de identificação)
@@ -107,7 +100,7 @@ Para o valor configurado na variável `PORT` é onde a aplicação será executa
     - Caso a validação seja aprovada, o cadastro é efetuado.
     - A senha não é armazenada em texto puro, apenas o hash é salvo no banco.
 
-#### Autenticação
+### Autenticação
 - **POST** `/login` — Login
     - O usuário envia:
         - document
@@ -116,7 +109,7 @@ Para o valor configurado na variável `PORT` é onde a aplicação será executa
     - Se existir, o sistema verifica se a senha informada corresponde ao hash armazenado no banco.
     - Caso seja válida, é gerado um token para autenticação, permitindo acesso às rotas privadas.
 
-#### Contas
+### Contas
 - **POST** `/accounts`: Criar conta (rota privada, requer token)
     - O usuário envia:
         - branch (agência)
@@ -131,7 +124,7 @@ Para o valor configurado na variável `PORT` é onde a aplicação será executa
     - Essas transações são verificadas e aplicadas conforme necessário para atualizar o saldo.
     - Após a atualização, o saldo final é retornado ao usuário
 
-#### Cartões
+### Cartões
 - **POST** `/accounts/{accountId}/cards`: Criar cartão (rota privada, requer token)
     - O usuário envia
         - type (tipo do cartão, se `virtual` ou `physical`)
@@ -152,7 +145,7 @@ Para o valor configurado na variável `PORT` é onde a aplicação será executa
     - Caso a paginação não seja informada, são usados os valores padrão: `currentPage = 1` e `itemsPerPage = 10`.
 
 
-#### Transações
+### Transações
 Antes de qualquer operação envolvendo transações, o sistema realiza uma verificação preliminar para identificar se existem transações com status `processing` que possam ter sido concluídas.
     - O sistema verifica todas as transações com status `processing` relacionado a  conta.
     - Para cada transação `processing`, é consultado o status na API de Compliance para confirmar se foi o status mudou para `authorized`.
@@ -241,7 +234,7 @@ Considerando que a aplicação lida com dados sensíveis, como senha de login do
     - Senha de login do usuário: armazenada somente na forma de hash.
     - Dados de cartão: o número do cartão e o CVV são tokenizados e no banco é armazenando um token e um *blob* criptografado que representam os dados do cartão, protegendo as informações contra acessos não autorizados.
 
-### Uso do Design Patter Factory 
+### Uso do Design Pattern Factory 
 A utilização do design pattern Factory facilita a criação de instâncias das classes de *services*, *use-cases*, *repositories*, *controllers* e *infrastructures*.
 
 Essa abordagem padroniza a criação dos objetos, facilitando a injeção de dependências e evitando que a configuração dos objetos seja feita manualmente em vários arquivos, o que dificultaria a manutenção do código.
