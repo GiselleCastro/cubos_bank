@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import dotenv from 'dotenv'
+import { logger } from './logger'
 
 dotenv.config()
 
@@ -21,7 +22,7 @@ const envSchema = z.object({
 const parsedEnv = envSchema.safeParse(process.env)
 
 if (!parsedEnv.success) {
-  console.error('Some environment variable is incorrect.')
+  logger.error('Some environment variable is incorrect.')
   process.exit(1)
 }
 

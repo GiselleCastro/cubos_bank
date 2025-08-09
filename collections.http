@@ -5,7 +5,7 @@ POST {{BASE_URL}}/people
 Content-Type: application/json
 
 {
-    "document": "569.679.155-76",
+    "document": "464.090.440-11",
     "password": "123456",
     "name": "Giselle"
 }
@@ -33,13 +33,12 @@ Content-Type: application/json
 Authorization: Bearer {{token}}
 
 {
-    "branch": "544",
+    "branch": "103",
     "account": "2034379-5"
 }
 ###
 
-@accountId = 001534f7-2ead-45a3-9051-cc644dab5f70
-#{{create_account.response.body.id}}
+@accountId = {{create_account.response.body.id}}
 
 GET {{BASE_URL}}/accounts
 Authorization: Bearer {{token}}
@@ -50,8 +49,8 @@ Content-Type: application/json
 Authorization: Bearer {{token}}
 
 {
-  "type": "physical",
-  "number": "6289 7447 8594 6978",
+  "type": "virtual",
+  "number": "6289 7447 8594 6778",
   "cvv": "552"
 }
 ###
@@ -64,39 +63,45 @@ GET {{BASE_URL}}/accounts/{{accountId}}/balance
 Authorization: Bearer {{token}}
 ###
 
-GET {{BASE_URL}}/cards
+GET {{BASE_URL}}/cards?itemsPerPage=1&currentPage=2
 Authorization: Bearer {{token}}
 ###
 
 ##-----
+# @name create_transaction
 POST {{BASE_URL}}/accounts/{{accountId}}/transactions
 Content-Type: application/json
 Authorization: Bearer {{token}}
 
 {
-  "value": 10.01,
+  "value": 27,
   "description": "Teste"
 }
 ###
 
-GET {{BASE_URL}}/accounts/001534f7-2ead-45a3-9051-cc644dab5f70/transactions
+@transactionId = {{create_transaction.response.body.id}}
+
+
+GET {{BASE_URL}}/accounts/{{accountId}}/transactions?type=debit
 Authorization: Bearer {{token}}
 ###
 
+# @name create_transaction_internal
 POST {{BASE_URL}}/accounts/{{accountId}}/transactions/internal
 Content-Type: application/json
 Authorization: Bearer {{token}}
 
 {
-    "receiverAccountId": "001534f7-2ead-45a3-9051-cc644dab5f70",
-    "value": 10.01,
-    "description": "ZodString"
+    "receiverAccountId": "058fb913-aa74-40c2-b0ab-d31b4e870ad7",
+    "value": -2.50,
+    "description": "Tentar outro valor"
 }
 ###
 
-#@transactionId = edf4eb55-13a5-4b01-9ff6-4a506090cd24
+@transactionId = {{create_transaction_internal.response.body.id}}
 
-POST {{BASE_URL}}/accounts/{{accountId}}/transactions/32d165f6-7193-49d7-8937-05c5d1bff93a/revert
+
+POST {{BASE_URL}}/accounts/{{accountId}}/transactions/{{transactionId}}/revert
 Authorization: Bearer {{token}}
 ###
 
