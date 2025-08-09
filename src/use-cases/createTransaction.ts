@@ -14,9 +14,9 @@ import { TransactionStatus, TransactionType } from '@prisma/client'
 import type { AccountsRepository } from '../repositories/accounts'
 import { convertReaisToCents } from '../utils/moneyConverter'
 import { inferTransactionType } from '../utils/transactionType'
-import type { CompilanceAPI } from '../infrastructure/compilanceAPI'
+import type { CompilanceAPI } from '../infrastructures/compilanceAPI'
 import { pollingTransactionStatus } from '../utils/pollingTransactionStatus'
-import type { CheckTransactionsService } from '../service/checkTransactions'
+import type { CheckTransactionsService } from '../services/checkTransactions'
 
 export class CreateTransactionUseCase {
   constructor(

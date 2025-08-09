@@ -2,7 +2,7 @@ import { env } from '../config/env'
 import { PaymentRequiredError, RequestTimeoutError } from '../err/appError'
 import { TransactionStatus } from '@prisma/client'
 
-export const wait = (milliseconds: number) => {
+const wait = (milliseconds: number) => {
   return new Promise((resolve) => setTimeout(resolve, milliseconds))
 }
 

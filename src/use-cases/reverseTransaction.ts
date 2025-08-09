@@ -15,9 +15,9 @@ import {
   convertCentsToReais,
 } from '../utils/moneyConverter'
 import { invertTransactionType } from '../utils/transactionType'
-import type { CompilanceAPI } from '../infrastructure/compilanceAPI'
+import type { CompilanceAPI } from '../infrastructures/compilanceAPI'
 import { pollingTransactionStatus } from '../utils/pollingTransactionStatus'
-import type { CheckTransactionsService } from '../service/checkTransactions'
+import type { CheckTransactionsService } from '../services/checkTransactions'
 
 export class ReverseTransactionUseCase {
   constructor(

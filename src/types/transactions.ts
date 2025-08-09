@@ -20,7 +20,7 @@ export type CreateTransactionCompilanceAPI = {
   externalId: string
 }
 
-export type TransactionCompilanceAPI = {
+type TransactionCompilanceAPI = {
   id: string
   externalId: string
   description: string

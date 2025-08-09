@@ -12,7 +12,7 @@ import { TransactionStatus, TransactionType } from '@prisma/client'
 import type { AccountsRepository } from '../repositories/accounts'
 import { convertReaisToCents } from '../utils/moneyConverter'
 import { inferTransactionType, invertTransactionType } from '../utils/transactionType'
-import { CheckTransactionsService } from '../service/checkTransactions'
+import { CheckTransactionsService } from '../services/checkTransactions'
 
 export class CreateInternalTransferUseCase {
   constructor(

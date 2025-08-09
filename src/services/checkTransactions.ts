@@ -2,7 +2,7 @@ import type { TransactionsRepository } from '../repositories/transactions'
 import { AppError, ForbiddenError, InternalServerError } from '../err/appError'
 import { convertAbsoluteAmountToAmount } from '../utils/moneyConverter'
 import type { AccountsRepository } from '../repositories/accounts'
-import type { CompilanceAPI } from '../infrastructure/compilanceAPI'
+import type { CompilanceAPI } from '../infrastructures/compilanceAPI'
 import { TransactionStatus } from '@prisma/client'
 
 export class CheckTransactionsService {
@@ -21,14 +21,14 @@ export class CheckTransactionsService {
         )
       }
 
-      const listOfAllTransactionsCurrentNotAuthorizedAndWithEmpontentId =
-        await this.transactionsRepository.findAllByAccountIdAndNotAuthorizedAndWithEmpontentId(
+      const listOfAllTransactionsCurrentStatusProcessingAndWithEmpontentId =
+        await this.transactionsRepository.findAllByAccountIdAndStatusProcessingAndWithEmpontentId(
           accountId,
         )
 
       const allTransactionByCompilanceAPI = await this.compilanceAPI.getAllTransaction()
 
-      listOfAllTransactionsCurrentNotAuthorizedAndWithEmpontentId.forEach(async (i) => {
+      listOfAllTransactionsCurrentStatusProcessingAndWithEmpontentId.forEach(async (i) => {
         const status = allTransactionByCompilanceAPI.data.find(
           (j) => i.id === j.externalId,
         )?.status

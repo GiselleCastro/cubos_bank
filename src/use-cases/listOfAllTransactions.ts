@@ -9,7 +9,7 @@ import {
   convertCentsToReais,
 } from '../utils/moneyConverter'
 import type { AccountsRepository } from '../repositories/accounts'
-import type { CheckTransactionsService } from '../service/checkTransactions'
+import type { CheckTransactionsService } from '../services/checkTransactions'
 export class ListOfAllTransactionsUseCase {
   constructor(
     private readonly transactionsRepository: TransactionsRepository,

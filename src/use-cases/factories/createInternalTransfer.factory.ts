@@ -1,7 +1,7 @@
 import { CreateInternalTransferUseCase } from '../createInternalTransfer'
 import { AccountsRepositoryFactory } from '../../repositories/factories/accounts.factory'
 import { TransactionsRepositoryFactory } from '../../repositories/factories/transactions.factory'
-import { CheckTransactionsServiceFactory } from '../../service/factories/checkTransactios.factory'
+import { CheckTransactionsServiceFactory } from '../../services/factories/checkTransactios.factory'
 
 export class CreateInternalTransferUseCaseFactory {
   static make(): CreateInternalTransferUseCase {

@@ -1,6 +1,8 @@
-FROM node:22
+FROM node:22.17.0-alpine
 
-WORKDIR /usr/src/cubos_bank
+RUN apk update && apk upgrade
+
+WORKDIR /usr/src/cubos_bank_api
 
 COPY package*.json ./
 

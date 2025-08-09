@@ -28,7 +28,7 @@ export type CreateCardReturn = CreateCardData & {
   updatedAt: Date
 }
 
-export type CardInfo = CreateCardData & {
+type CardInfo = CreateCardData & {
   id: string
   createdAt: Date
   updatedAt: Date
