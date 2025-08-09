@@ -1,15 +1,34 @@
 import { z } from 'zod'
 import { createCardBodySchema } from '../schema/accounts'
 import { Pagination } from '.'
+import { CardType } from '@prisma/client'
 
 export type CreateCardData = z.infer<typeof createCardBodySchema>
 
-export type CreateCard = CreateCardData & {
+type CardBase = {
   id: string
+  blob: Uint8Array<ArrayBufferLike>
+  type: CardType
+  last4: string
+}
+
+export type CreateCard = CardBase & {
+  token: string
   accountId: string
 }
 
+export type ListCardReturn = CardBase & {
+  createdAt: Date
+  updatedAt: Date
+}
+
 export type CreateCardReturn = CreateCardData & {
+  id: string
+  createdAt: Date
+  updatedAt: Date
+}
+
+export type CardInfo = CreateCardData & {
   id: string
   createdAt: Date
   updatedAt: Date
@@ -20,6 +39,6 @@ export type PaginationByUser = Pagination & {
 }
 
 export type CardsReturnPagination = {
-  cards: CreateCardReturn[]
+  cards: CardInfo[]
   pagination: Pagination
 }

@@ -1,5 +1,6 @@
 import type { AccountsRepository } from '../repositories/accounts'
 import { AppError, ForbiddenError, InternalServerError } from '../err/appError'
+import { reverterTokenCard } from '../utils/cardToken'
 
 export class ListOfCardsByAccountUseCase {
   constructor(private readonly accountsRepository: AccountsRepository) {}
@@ -15,7 +16,20 @@ export class ListOfCardsByAccountUseCase {
       const cardsByAccount =
         await this.accountsRepository.listOfCardsByAccountId(accountId)
 
-      return cardsByAccount
+      const cardsByAccountDisplay = cardsByAccount?.map((i) => {
+        const { cardNumber, cvv } = reverterTokenCard(i.blob)
+
+        return {
+          id: i.id,
+          type: i.type,
+          number: cardNumber,
+          cvv: cvv,
+          createdAt: i.createdAt,
+          updatedAt: i.updatedAt,
+        }
+      })
+
+      return cardsByAccountDisplay
     } catch (error) {
       if (error instanceof AppError) throw error
       throw new InternalServerError(

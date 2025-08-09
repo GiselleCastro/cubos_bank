@@ -9,6 +9,7 @@ import type { CreateCardData, CreateCardReturn } from '../types/cards'
 import { v4 as uuid } from 'uuid'
 import { CardType } from '@prisma/client'
 import type { AccountsRepository } from '../repositories/accounts'
+import { cardTokenizer } from '../utils/cardToken'
 
 export class CreateCardUseCase {
   constructor(
@@ -42,23 +43,30 @@ export class CreateCardUseCase {
         }
       }
 
-      const registeredCard = await this.cardsRepository.findByCardNumber(data.number)
+      const { token, blob } = cardTokenizer(data.number, data.cvv)
+
+      const registeredCard = await this.cardsRepository.findByToken(token)
 
       if (registeredCard) {
         throw new ConflictError('This card already exists.')
       }
 
+      const lastFourDigits = data.number.slice(-4)
+
       const newCard = await this.cardsRepository.create({
         id: uuid(),
-        ...data,
+        token,
+        blob,
+        last4: lastFourDigits,
         accountId,
+        type: data.type,
       })
 
       const newCardCreated = {
         id: newCard.id,
-        type: newCard.type,
-        number: newCard.number.slice(-4),
-        cvv: newCard.cvv,
+        type: data.type,
+        number: lastFourDigits,
+        cvv: data.cvv,
         createdAt: newCard.createdAt,
         updatedAt: newCard.updatedAt,
       }

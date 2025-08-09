@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client'
 import type { Accounts } from '@prisma/client'
-import type { CreateCardReturn } from '../types/cards'
+import type { ListCardReturn } from '../types/cards'
 import type { CreateAccount, AccountReturn } from '../types/accounts'
 
 export class AccountsRepository {
@@ -27,13 +27,13 @@ export class AccountsRepository {
     return this.prisma.accounts.findUnique({ where: { id: accountId } })
   }
 
-  async listOfCardsByAccountId(accountId: string): Promise<CreateCardReturn[] | null> {
+  async listOfCardsByAccountId(accountId: string): Promise<ListCardReturn[] | null> {
     return this.prisma.cards.findMany({
       select: {
         id: true,
         type: true,
-        number: true,
-        cvv: true,
+        last4: true,
+        blob: true,
         createdAt: true,
         updatedAt: true,
       },

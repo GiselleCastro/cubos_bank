@@ -17,6 +17,7 @@ const envSchema = z.object({
   JWT_SECRET_EXPIRES_IN_SECONDS: z.coerce.number(),
   TRANSACTION_COMPILANCE_API_POLLING_MAX_RETRY: z.coerce.number(),
   TRANSACTION_COMPILANCE_API_POLLING_DELAY_MS: z.coerce.number(),
+  CARD_SECRET_KEY: z.string().min(1),
 })
 
 const parsedEnv = envSchema.safeParse(process.env)

@@ -9,21 +9,12 @@ export class CardsRepository {
     return this.prisma.cards.create({ data })
   }
 
-  async findByCardNumber(cardNumber: string): Promise<Cards | null> {
-    return this.prisma.cards.findUnique({ where: { number: cardNumber } })
+  async findByToken(token: string): Promise<Cards | null> {
+    return this.prisma.cards.findUnique({ where: { token } })
   }
 
   async findByAccountIdAndType(accountId: string, type: CardType): Promise<Cards | null> {
     return this.prisma.cards.findFirst({ where: { accountId: accountId, type } })
-  }
-
-  async findByAccountIdAndAccountNumber(
-    accountId: string,
-    accountNumber: string,
-  ): Promise<Cards | null> {
-    return this.prisma.cards.findUnique({
-      where: { id: accountId, number: accountNumber },
-    })
   }
 
   async findByUserId(userId: string, skip: number, take: number) {
@@ -31,8 +22,8 @@ export class CardsRepository {
       select: {
         id: true,
         type: true,
-        number: true,
-        cvv: true,
+        last4: true,
+        blob: true,
         createdAt: true,
         updatedAt: true,
       },
