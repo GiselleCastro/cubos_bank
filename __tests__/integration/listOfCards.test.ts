@@ -4,9 +4,11 @@ import request from 'supertest'
 import { faker } from '@faker-js/faker'
 import { HttpStatusCode } from 'axios'
 import { ListOfCardsUseCase } from '../../src/use-cases/listOfCards'
+import { CardsRepository } from '../../src/repositories/cards'
 import { InternalServerError } from '../../src/err/appError'
 import { CardType } from '@prisma/client'
-import { CardsReturnPagination, CreateCardReturn } from '../../src/types/cards'
+import { CreateCardReturn } from '../../src/types/cards'
+import { cardTokenizer } from '../../src/utils/cardToken'
 
 const userId = faker.string.uuid()
 
@@ -15,7 +17,7 @@ jest.mock('jsonwebtoken', () => ({
     return { id: userId }
   }),
 }))
-jest.mock('../../src/use-cases/listOfCards')
+jest.mock('../../src/repositories/cards')
 
 describe('GET /cards', () => {
   let serverStub: Express
@@ -28,13 +30,13 @@ describe('GET /cards', () => {
 
   it('should return 200 and the list of cards', async () => {
     const mockCards: CreateCardReturn[] = []
-    const numberOfCards = faker.number.int({ min: 0, max: 20 })
+    const numberOfCards = faker.number.int({ min: 30, max: 40 })
 
     for (let i = 0; i < numberOfCards; i++) {
       mockCards.push({
         id: faker.string.uuid(),
         type: CardType.virtual,
-        number: faker.finance.creditCardNumber().replace(/\D/g, '').slice(-4),
+        number: faker.finance.creditCardNumber().replace(/\D/g, ''),
         cvv: faker.finance.creditCardCVV(),
         createdAt: faker.date.anytime(),
         updatedAt: faker.date.anytime(),
@@ -42,31 +44,41 @@ describe('GET /cards', () => {
     }
 
     const pagination = {
-      itemsPerPage: faker.number.int({ min: 0, max: 10 }),
-      currentPage: faker.number.int({ min: 1, max: 20 }),
+      itemsPerPage: faker.number.int({ min: 1, max: 5 }),
+      currentPage: faker.number.int({ min: 1, max: 2 }),
     }
 
     const startIndex = (pagination.currentPage - 1) * pagination.itemsPerPage
     const endIndex = startIndex + pagination.itemsPerPage
     const cardsOnTheCurrentPage = mockCards.slice(startIndex, endIndex)
 
-    const listCardsPagination: CardsReturnPagination = {
-      cards: cardsOnTheCurrentPage,
-      pagination,
-    }
+    const cardsOnTheCurrentPageTonkenized = cardsOnTheCurrentPage.map((i) => {
+      const { token, blob } = cardTokenizer(i.number, i.cvv)
+      return {
+        id: i.id,
+        token,
+        blob,
+        last4: i.number.slice(-4),
+        type: i.type,
+        createdAt: i.createdAt,
+        updatedAt: i.updatedAt,
+      }
+    })
 
-    const listOfCardsUseCaseSpy = jest
-      .spyOn(ListOfCardsUseCase.prototype, 'execute')
-      .mockResolvedValue(listCardsPagination)
+    const cardsRepositoryFindByUserIdSpy = jest
+      .spyOn(CardsRepository.prototype, 'findByUserId')
+      .mockResolvedValue(cardsOnTheCurrentPageTonkenized)
 
-    const listCardsPaginationDateToString = cardsOnTheCurrentPage.map((i) => ({
-      ...i,
-      createdAt: i.createdAt.toISOString(),
-      updatedAt: i.updatedAt.toISOString(),
-    }))
+    const listCardsPaginationDateToStringAndLastFourDigitsCard =
+      cardsOnTheCurrentPage.map((i) => ({
+        ...i,
+        number: i.number.slice(-4),
+        createdAt: i.createdAt.toISOString(),
+        updatedAt: i.updatedAt.toISOString(),
+      }))
 
     const listCardsPaginationDisplay = {
-      cards: listCardsPaginationDateToString,
+      cards: listCardsPaginationDateToStringAndLastFourDigitsCard,
       pagination,
     }
 
@@ -75,15 +87,16 @@ describe('GET /cards', () => {
       .set('Authorization', 'Bearer token')
       .query(pagination)
 
+    expect(response.body).toEqual(listCardsPaginationDisplay)
     expect(response.statusCode).toBe(HttpStatusCode.Ok)
     expect(response.headers['content-type']).toBe('application/json; charset=utf-8')
-    expect(response.body).toEqual(listCardsPaginationDisplay)
-    expect(listOfCardsUseCaseSpy).toHaveBeenCalledWith({
+    expect(cardsRepositoryFindByUserIdSpy).toHaveBeenCalledWith(
       userId,
-      ...pagination,
-    })
+      (pagination.currentPage - 1) * pagination.itemsPerPage,
+      pagination.itemsPerPage,
+    )
 
-    listOfCardsUseCaseSpy.mockRestore()
+    cardsRepositoryFindByUserIdSpy.mockRestore()
   })
 
   it('should call next with error and return 500 on failure', async () => {

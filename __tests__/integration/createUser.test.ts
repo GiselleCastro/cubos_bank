@@ -8,7 +8,6 @@ import { BadRequestError } from '../../src/err/appError'
 import fakerBr from 'faker-br'
 
 jest.mock('../../src/use-cases/createUser')
-jest.mock('../../src/use-cases/login')
 
 describe('POST /people', () => {
   let serverStub: Express

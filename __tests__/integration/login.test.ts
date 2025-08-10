@@ -7,7 +7,6 @@ import { LoginUseCase } from '../../src/use-cases/login'
 import { BadRequestError } from '../../src/err/appError'
 import fakerBr from 'faker-br'
 
-jest.mock('../../src/use-cases/createUser')
 jest.mock('../../src/use-cases/login')
 
 describe('POST /login', () => {

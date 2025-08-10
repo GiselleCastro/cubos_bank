@@ -21,9 +21,7 @@
   - [Consistência de dados](#consistência-de-dados)
   - [Proteção de Dados Sensíveis](#proteção-de-dados-sensíveis)
   - [Uso do Design Pattern Factory](#uso-do-design-pattern-factory)
-- [Testes](#testes)
-  - [Testes Unitários](#testes-unitários)
-  - [Testes de Integração](#testes-de-integração)
+- [Testes de Integração](#testes-de-integração)
 
 ## Overview
 Este repositório contém a Cubos Bank API.
@@ -241,6 +239,7 @@ Essa abordagem padroniza a criação dos objetos, facilitando a injeção de dep
 
 Ao centralizar essa criação em uma *factory* que retorna as instâncias já configuradas, o código fica mais organizado, modular e testável. Isso também facilita a realização de testes unitários, já que as dependências podem ser facilmente mockadas.
 
-## Testes
-### Testes Unitários
-### Testes de Integração
+## Testes de Integração
+Foram implementados testes de integração para validar o comportamento da aplicação.
+Foi utilizado o Jest como framework principal de testes, aliado ao SuperTest para simular requisições HTTP e ao SpyOn para monitorar e inspecionar chamadas de funções durante a execução.
+

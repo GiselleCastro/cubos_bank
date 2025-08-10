@@ -1,5 +1,5 @@
 import type { UsersRepository } from '../repositories/users'
-import type { LoginDataLoginData, Token } from '../types/users.js'
+import type { LoginDataLoginData, Token } from '../types/users'
 import { compare } from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import { env } from '../config/env'
