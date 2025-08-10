@@ -12,16 +12,8 @@ const userId = faker.string.uuid()
 
 jest.mock('jsonwebtoken', () => ({
   verify: jest.fn((_, __) => {
-    return { userId }
+    return { id: userId }
   }),
-}))
-jest.mock('../../src/middlewares/authentication', () => ({
-  AuthMiddleware: {
-    handle: jest.fn(() => (req, res, next) => {
-      req.headers.authorization = userId
-      next()
-    }),
-  },
 }))
 jest.mock('../../src/use-cases/listOfCards')
 
