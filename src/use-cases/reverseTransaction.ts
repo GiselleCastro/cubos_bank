@@ -154,6 +154,10 @@ export class ReverseTransactionUseCase {
       statusTransaction === TransactionStatus.authorized ? balanceUpdated : null,
     )
 
+    if (statusTransaction === TransactionStatus.unauthorized) {
+      throw new PaymentRequiredError('Payment refused by Compilance API.')
+    }
+
     return registerRevertedTransaction
   }
 

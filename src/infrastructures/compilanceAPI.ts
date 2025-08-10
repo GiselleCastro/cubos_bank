@@ -135,10 +135,10 @@ export class CompilanceAPI extends RestClient {
         this.accessToken = null
         this.authCode = null
         logger.error('Refresh token expired.')
-        throw new UnauthorizedError('Refresh token expired.')
+        throw new InternalServerError('Interna lServer Error')
       }
       logger.error('Unable to obtain refresh access token.')
-      throw error
+      throw new InternalServerError('Internal Server Error.')
     }
   }
 
@@ -180,6 +180,7 @@ export class CompilanceAPI extends RestClient {
 
     try {
       const response = await this.post(`/cnpj/validate`, data, headers)
+      logger.info(response.data)
       return response.data
     } catch (error) {
       if (error instanceof AppError) throw error
@@ -195,6 +196,7 @@ export class CompilanceAPI extends RestClient {
     const headers = await this.getHeaders()
     try {
       const response = await this.put(`/transaction/${id}`, data, headers)
+      logger.info(response.data)
       return response.data
     } catch (error) {
       if (error instanceof AppError) throw error
@@ -208,6 +210,7 @@ export class CompilanceAPI extends RestClient {
 
     try {
       const response = await this.get(`/transaction/${id}`, {}, headers)
+      logger.info(response.data)
       return response.data
     } catch (error) {
       if (error instanceof AppError) throw error
@@ -220,6 +223,7 @@ export class CompilanceAPI extends RestClient {
     const headers = await this.getHeaders()
     try {
       const response = await this.get(`/transaction`, {}, headers)
+      logger.info(response.data)
       return response.data
     } catch (error) {
       if (error instanceof AppError) throw error

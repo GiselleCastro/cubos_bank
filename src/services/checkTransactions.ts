@@ -28,35 +28,37 @@ export class CheckTransactionsService {
 
       const allTransactionByCompilanceAPI = await this.compilanceAPI.getAllTransaction()
 
-      listOfAllTransactionsCurrentStatusProcessingAndWithEmpontentId.forEach(async (i) => {
-        const status = allTransactionByCompilanceAPI.data.find(
-          (j) => i.id === j.externalId,
-        )?.status
+      listOfAllTransactionsCurrentStatusProcessingAndWithEmpontentId.forEach(
+        async (i) => {
+          const status = allTransactionByCompilanceAPI.data.find(
+            (j) => i.id === j.externalId,
+          )?.status
 
-        if (!status) return
+          if (!status) return
 
-        if (status === TransactionStatus.authorized) {
-          try {
-            const accountToBeUpdate = await this.accountsRepository.findByAccountId(
-              i.accountId,
-            )
-            if (!accountToBeUpdate) return
-            const newBalance =
-              accountToBeUpdate.balance + convertAbsoluteAmountToAmount(i.value, i.type)
-            if (newBalance > 0) {
-              await this.transactionsRepository.updateStatusAndBalance(
+          if (status === TransactionStatus.authorized) {
+            try {
+              const accountToBeUpdate = await this.accountsRepository.findByAccountId(
                 i.accountId,
-                i.id,
-                status,
-                newBalance,
-                i.reversedById,
               )
+              if (!accountToBeUpdate) return
+              const newBalance =
+                accountToBeUpdate.balance + convertAbsoluteAmountToAmount(i.value, i.type)
+              if (newBalance > 0) {
+                await this.transactionsRepository.updateStatusAndBalance(
+                  i.accountId,
+                  i.id,
+                  status,
+                  newBalance,
+                  i.reversedById,
+                )
+              }
+            } catch {
+              return
             }
-          } catch {
-            return
           }
-        }
-      })
+        },
+      )
     } catch (error) {
       if (error instanceof AppError) throw error
       throw new InternalServerError(

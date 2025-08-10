@@ -120,6 +120,9 @@ export class TransactionsRepository {
       },
       skip,
       take,
+      orderBy: {
+        createdAt: 'desc',
+      },
     })
   }
 
@@ -131,17 +134,23 @@ export class TransactionsRepository {
     })
   }
 
-  async findAllByAccountIdAndNotAuthorizedAndWithEmpontentId(accountId: string) {
+  async findAllByAccountIdAndStatusProcessingAndWithEmpontentId(accountId: string) {
     return this.prisma.transactions.findMany({
       where: {
         accountId,
-        status: {
-          not: TransactionStatus.authorized,
-        },
+        status: TransactionStatus.processing,
         empontentId: {
           not: null,
         },
       },
+      orderBy: [
+        {
+          type: 'desc',
+        },
+        {
+          createdAt: 'asc',
+        },
+      ],
     })
   }
 

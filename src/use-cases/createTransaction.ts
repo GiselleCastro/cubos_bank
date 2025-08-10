@@ -17,6 +17,7 @@ import { inferTransactionType } from '../utils/transactionType'
 import type { CompilanceAPI } from '../infrastructures/compilanceAPI'
 import { pollingTransactionStatus } from '../utils/pollingTransactionStatus'
 import type { CheckTransactionsService } from '../services/checkTransactions'
+import { logger } from '../config/logger'
 
 export class CreateTransactionUseCase {
   constructor(
@@ -88,8 +89,12 @@ export class CreateTransactionUseCase {
           empontentId,
           status,
         },
-        status === TransactionStatus.processing ? null : balanceUpdated,
+        status === TransactionStatus.authorized ? balanceUpdated : null,
       )
+
+      if (status === TransactionStatus.unauthorized) {
+        throw new PaymentRequiredError('Payment refused by Compilance API.')
+      }
 
       const transactionCreated = {
         id: registeredTransaction.id,
@@ -98,6 +103,8 @@ export class CreateTransactionUseCase {
         createdAt: registeredTransaction.createdAt,
         updatedAt: registeredTransaction.updatedAt,
       }
+
+      logger.info({ status, ...transactionCreated })
 
       return transactionCreated
     } catch (error) {

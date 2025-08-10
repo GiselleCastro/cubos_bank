@@ -1,5 +1,5 @@
 import { env } from '../config/env'
-import { PaymentRequiredError, RequestTimeoutError } from '../err/appError'
+import { RequestTimeoutError } from '../err/appError'
 import { TransactionStatus } from '@prisma/client'
 
 const wait = (milliseconds: number) => {
@@ -28,14 +28,14 @@ export async function pollingTransactionStatus(
       }
 
       if (status === TransactionStatus.unauthorized) {
-        throw new PaymentRequiredError('Payment refused by Compilance API.')
+        return status
       }
 
       if (retry === maxRetry && status === TransactionStatus.processing) {
         return status
       }
     } catch (error) {
-      if (retry >= maxRetry || error instanceof PaymentRequiredError) {
+      if (retry >= maxRetry) {
         throw error
       }
     }
