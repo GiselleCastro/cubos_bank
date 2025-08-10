@@ -20,10 +20,9 @@ export class CheckBalanceUseCase {
       }
 
       await this.checkTransactionsService.execute(accountId, userId)
-      
+
       const updatedRegisteredAccount =
-      await this.accountsRepository.findByAccountId(accountId)
-      
+        await this.accountsRepository.findByAccountId(accountId)
 
       const balance = {
         balance: convertCentsToReais(updatedRegisteredAccount!.balance),

@@ -65,7 +65,7 @@ export class CheckTransactionsService {
       )
 
       const DB_PROPAGATION_DELAY_MS = 100
-      await new Promise(_ => setTimeout(_, DB_PROPAGATION_DELAY_MS))
+      await new Promise((_) => setTimeout(_, DB_PROPAGATION_DELAY_MS))
     } catch (error) {
       if (error instanceof AppError) throw error
       throw new InternalServerError(
