@@ -33,7 +33,8 @@ const config: Config = {
   coveragePathIgnorePatterns: [
     // "/src/**/tests/",          // pasta de testes (se quiser ignorar)
     ".*\\.factory\\.ts$",  
-    "/src/server.ts"
+    "/src/server.ts",
+    "/src/types/.*\\.ts$"
   ],
 
   // Indicates which provider should be used to instrument code for coverage

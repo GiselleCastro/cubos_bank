@@ -15,23 +15,13 @@ jest.mock('jsonwebtoken', () => ({
     return { userId }
   }),
 }))
-jest.mock('../../src/middlewares/schemaValidation', () => ({
+jest.mock('../../src/middlewares/authentication', () => ({
   AuthMiddleware: {
     handle: jest.fn(() => (req, res, next) => {
       req.headers.authorization = userId
       next()
     }),
   },
-}))
-jest.mock('../../src/middlewares/schemaValidation', () => ({
-  ValidateSchemaMiddleware: {
-    handle: jest.fn(() => (req, res, next) => {
-      req.headers.authorization = userId
-
-      next()
-    }),
-  },
-  Params: { BODY: 'query' },
 }))
 jest.mock('../../src/use-cases/listOfCards')
 
